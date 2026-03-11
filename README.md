@@ -1,3 +1,4 @@
+----------------------------------------------------------------
 Install:
 
 Node.js
@@ -39,6 +40,7 @@ Desktop/Inventory-Management-System-DMI-Capstone
 Click Select Folder (or Open).
 
 Now all your project files will appear in VS Code.
+----------------------------------------------------------------
 
 ------------------------------------------------------------
 
@@ -51,6 +53,7 @@ Terminal → New Terminal
 Run this command to install all required packages:
 
 npm i
+----------------------------------------------------------------
 
 ------------------------------------------------------------
 4️⃣ Run the Project
@@ -62,5 +65,5 @@ npm run dev
 You’ll see a local link like:
 
 http://localhost:5173
-
+----------------------------------------------------------------
 
