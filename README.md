@@ -6,7 +6,7 @@ Git
 
 Visual Studio Code
 
-
+----------------------------------------------------------------
 1️⃣ Clone the Repository
 
 Go to your repository on GitHub. The link will look like:
@@ -17,13 +17,12 @@ Open Command Prompt / Terminal on your computer.
 
 Navigate to the folder where you want the project:
 
-cd Desktop
-
 Clone the repository:
 
 git clone https://github.com/jemsendondmibpo-svg/Inventory-Management-System-DMI-Capstone.git
 
 ✅ This downloads the project folder to your computer.
+------------------------------------------------------------
 
 2️⃣ Open the Project in VS Code
 
@@ -38,6 +37,7 @@ Desktop/Inventory-Management-System-DMI-Capstone
 Click Select Folder (or Open).
 
 Now all your project files will appear in VS Code.
+------------------------------------------------------------
 
 3️⃣ Install Dependencies
 
@@ -48,7 +48,7 @@ Terminal → New Terminal
 Run this command to install all required packages:
 
 npm i
-
+------------------------------------------------------------
 4️⃣ Run the Project
 
 In the same terminal, start the development server:
