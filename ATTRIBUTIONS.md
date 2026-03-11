@@ -1,1 +1,3 @@
-Digital MInds BPO Services Inc- Inventory MAnagement System
+--------------------------------------------------------------
+|Digital MInds BPO Services Inc- Inventory Management System |
+--------------------------------------------------------------
