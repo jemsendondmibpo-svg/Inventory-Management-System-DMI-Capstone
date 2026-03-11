@@ -11,7 +11,7 @@ Visual Studio Code
 
 1️⃣ Clone the Repository
 
-Go to your repository on GitHub. The link will look like:
+Go to repository link on GitHub. 
 
 https://github.com/jemsendondmibpo-svg/Inventory-Management-System-DMI-Capstone.git
 
