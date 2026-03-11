@@ -1,6 +1,12 @@
-install node js,
-install git,
-install vscode,
-run this command - 
-npm i, 
+Install:
+
+Node.js
+
+Git
+
+Visual Studio Code
+
+Then run:
+
+npm i
 npm run dev
