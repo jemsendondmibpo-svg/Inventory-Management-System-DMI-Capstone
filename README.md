@@ -39,7 +39,7 @@ Desktop/Inventory-Management-System-DMI-Capstone
 
 Click Select Folder (or Open).
 
-Now all your project files will appear in VS Code.
+Now all the project files will appear in VS Code.
 ----------------------------------------------------------------
 
 ------------------------------------------------------------
