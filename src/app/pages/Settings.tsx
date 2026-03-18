@@ -35,9 +35,9 @@ export default function SettingsPage() {
     email: "info@digitalmindsbpo.com",
     phone: "+63 2 8123 4567",
     website: "https://www.digitalmindsbpo.com",
-    address: "Floor 8, IT Park Building, Cebu Business Park",
-    city: "Cebu City",
-    province: "Cebu",
+    address: "Magsaysay Ave, Green Wood 3rd floor, Naga City",
+    city: "Naga City",
+    province: "Camarines Sur",
     postalCode: "6000",
     country: "Philippines",
   });
