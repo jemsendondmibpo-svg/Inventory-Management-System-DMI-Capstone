@@ -9,7 +9,6 @@ import AddAssignment from "./pages/AddAssignment";
 import Reports from "./pages/Reports";
 import SettingsPage from "./pages/Settings";
 import UserManagement from "./pages/UserManagement";
-import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 
@@ -44,7 +43,6 @@ export const router = createBrowserRouter([
             ) 
           },
           { path: "settings", element: <SettingsPage /> },
-          { path: "*", element: <NotFound /> },
         ],
       },
     ],
