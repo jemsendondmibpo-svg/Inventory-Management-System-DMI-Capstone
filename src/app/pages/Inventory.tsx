@@ -1,5 +1,19 @@
 import { useState } from "react";
-import { Edit, Trash2, Filter, Plus, ChevronLeft, ChevronRight, MapPin, Eye, Search } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+  Eye,
+  Search,
+  Boxes,
+  AlertTriangle,
+  CircleDollarSign,
+  ShieldCheck,
+  PackagePlus,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -20,6 +34,8 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { useInventory, InventoryAsset } from "../context/InventoryContext";
+import { useAuth } from "../context/AuthContext";
+import { canManageInventory } from "../lib/access";
 
 const CATEGORY_STYLES: Record<string, string> = {
   "System Unit": "bg-blue-100 text-blue-700",
@@ -66,6 +82,7 @@ function generateSKU(assetType: string, brand: string, id: number): string {
 }
 
 export default function Inventory() {
+  const { user } = useAuth();
   const { inventory, addAsset, updateAsset, deleteAsset, loading } = useInventory();
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -77,6 +94,7 @@ export default function Inventory() {
   const [viewTarget, setViewTarget] = useState<InventoryAsset | null>(null);
   const [editTarget, setEditTarget] = useState<InventoryAsset | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const canEditInventory = user ? canManageInventory(user.role) : false;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -132,6 +150,10 @@ export default function Inventory() {
   );
 
   const handleDelete = async () => {
+    if (!canEditInventory) {
+      toast.error("You have view-only access to Inventory.");
+      return;
+    }
     if (!deleteTarget) return;
     try {
       await deleteAsset(deleteTarget.id);
@@ -142,6 +164,10 @@ export default function Inventory() {
   };
 
   const handleOpenAddModal = () => {
+    if (!canEditInventory) {
+      toast.error("You have view-only access to Inventory.");
+      return;
+    }
     setFormData({
       assetType: "",
       brand: "",
@@ -160,6 +186,10 @@ export default function Inventory() {
   };
 
   const handleOpenEditModal = (asset: InventoryAsset) => {
+    if (!canEditInventory) {
+      toast.error("You have view-only access to Inventory.");
+      return;
+    }
     setFormData({
       assetType: asset.category,
       brand: asset.brand,
@@ -180,6 +210,11 @@ export default function Inventory() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!canEditInventory) {
+      toast.error("You have view-only access to Inventory.");
+      return;
+    }
 
     if (!formData.assetType || !formData.brand || !formData.model) {
       toast.error("Please fill in all required fields.");
@@ -298,61 +333,141 @@ export default function Inventory() {
   const categories = ["System Unit", "Monitor", "Keyboard", "Mouse", "Headset", "Webcam", "Extra"];
 
   const fieldClass =
-    "h-9 text-sm bg-white border-gray-200 rounded-lg focus:border-[#B0BF00] focus:ring-[#B0BF00]";
+    "h-11 rounded-xl border border-slate-200 bg-white text-sm shadow-sm transition focus:border-[#B0BF00] focus:ring-4 focus:ring-[#B0BF00]/10";
+  const totalInventoryValue = inventory.reduce((sum, asset) => sum + asset.price * asset.quantity, 0);
+  const lowStockCount = inventory.filter((asset) => asset.stockStatus !== "In Stock").length;
+  const availableCount = inventory.filter((asset) => asset.assetStatus === "Available").length;
+  const statCards = [
+    {
+      title: "Asset Types",
+      value: inventory.length,
+      description: "Tracked assets in the inventory list",
+      icon: Boxes,
+      accent: "from-lime-100 via-white to-lime-50",
+      iconClass: "text-[#93a300]",
+    },
+    {
+      title: "Attention Needed",
+      value: lowStockCount,
+      description: "Items low in stock or out of stock",
+      icon: AlertTriangle,
+      accent: "from-orange-100 via-white to-amber-50",
+      iconClass: "text-orange-500",
+    },
+    {
+      title: "Inventory Value",
+      value: `PHP ${totalInventoryValue.toLocaleString()}`,
+      description: "Estimated value based on quantity and unit price",
+      icon: CircleDollarSign,
+      accent: "from-emerald-100 via-white to-emerald-50",
+      iconClass: "text-emerald-600",
+    },
+    {
+      title: "Available Assets",
+      value: availableCount,
+      description: "Ready for assignment or deployment",
+      icon: ShieldCheck,
+      accent: "from-sky-100 via-white to-sky-50",
+      iconClass: "text-sky-600",
+    },
+  ];
 
   return (
-    <div className="space-y-4 md:space-y-5">
+    <div className="space-y-5 md:space-y-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {statCards.map((card) => {
+          const Icon = card.icon;
+
+          return (
+            <div
+              key={card.title}
+              className={`overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br ${card.accent} p-5 shadow-[0_20px_45px_rgba(15,23,42,0.08)]`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                    {card.title}
+                  </p>
+                  <p className="mt-3 text-2xl font-bold tracking-tight text-slate-900">
+                    {card.value}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-white/90 p-3 shadow-sm">
+                  <Icon className={`h-5 w-5 ${card.iconClass}`} />
+                </div>
+              </div>
+              <p className="mt-4 text-sm leading-6 text-slate-600">{card.description}</p>
+            </div>
+          );
+        })}
+      </div>
+
       {/* Stock List Card */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-[0_4px_20px_rgba(176,191,0,0.08)] border border-[#B0BF00]/20 overflow-hidden hover:shadow-[0_8px_30px_rgba(176,191,0,0.15)] transition-all duration-300">
+      <div className="overflow-hidden rounded-[28px] border border-[#B0BF00]/15 bg-white/90 shadow-[0_24px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 hover:shadow-[0_26px_70px_rgba(15,23,42,0.12)]">
         {/* Stock List Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 md:px-6 py-3 md:py-4 border-b border-gray-100/50">
-          <h3 className="text-sm font-semibold text-gray-800">Inventory Assets</h3>
-          <div className="flex items-center gap-2 flex-wrap">
+        <div className="border-b border-slate-100 bg-gradient-to-r from-[#f7fad8] via-white to-[#eef3c2] px-4 py-5 md:px-6 md:py-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#B0BF00]/20 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7f8f00]">
+                <Boxes className="h-3.5 w-3.5" />
+                Inventory Module
+              </div>
+              <h3 className="mt-3 text-xl font-bold tracking-tight text-slate-900 md:text-2xl">
+                Inventory Assets
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Keep your asset records clean, searchable, and ready for assignment with a more organized inventory workspace.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             {/* Search */}
-            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 w-full sm:w-48">
-              <Search className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+            <div className="flex w-full items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-sm sm:w-64">
+              <Search className="h-4 w-4 flex-shrink-0 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search assets..."
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-                className="bg-transparent text-xs text-gray-600 placeholder-gray-400 outline-none w-full"
+                className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 outline-none"
               />
             </div>
             
             {/* Filter Button */}
             <button
               onClick={() => setFilterOpen((v) => !v)}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50"
             >
-              <Filter className="w-3.5 h-3.5" />
+              <Filter className="h-4 w-4" />
               Filter
               {(filterCategory !== "all" || filterStockStatus !== "all" || filterAssetStatus !== "all") && (
-                <span className="ml-1 w-1.5 h-1.5 rounded-full bg-[#B0BF00]" />
+                <span className="ml-1 h-2 w-2 rounded-full bg-[#B0BF00]" />
               )}
             </button>
 
             {/* Add Asset Button */}
-            <button
-              onClick={handleOpenAddModal}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#B0BF00] hover:bg-[#9aaa00] text-white rounded-lg text-xs font-medium transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Add Asset</span>
-              <span className="sm:hidden">Add</span>
-            </button>
+            {canEditInventory && (
+              <button
+                onClick={handleOpenAddModal}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#B0BF00] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(176,191,0,0.28)] transition-colors hover:bg-[#9aaa00]"
+              >
+                <PackagePlus className="h-4 w-4" />
+                <span>Add New Asset</span>
+              </button>
+            )}
           </div>
+        </div>
         </div>
 
         {/* Filter Panel */}
         {filterOpen && (
-          <div className="px-4 md:px-6 py-3 bg-gray-50 border-b border-gray-100 flex flex-wrap gap-3 md:gap-4 items-center">
+          <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50/80 px-4 py-4 md:gap-4 md:px-6">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 font-medium">Category:</span>
+              <span className="text-xs font-medium text-slate-500">Category:</span>
               <select
                 value={filterCategory}
                 onChange={(e) => { setFilterCategory(e.target.value); setCurrentPage(1); }}
-                className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700 outline-none focus:border-[#B0BF00]"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none focus:border-[#B0BF00]"
               >
                 <option value="all">All Types</option>
                 {categories.map((c) => (
@@ -361,11 +476,11 @@ export default function Inventory() {
               </select>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 font-medium">Stock:</span>
+              <span className="text-xs font-medium text-slate-500">Stock:</span>
               <select
                 value={filterStockStatus}
                 onChange={(e) => { setFilterStockStatus(e.target.value); setCurrentPage(1); }}
-                className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700 outline-none focus:border-[#B0BF00]"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none focus:border-[#B0BF00]"
               >
                 <option value="all">All Stock</option>
                 <option value="In Stock">In Stock</option>
@@ -374,11 +489,11 @@ export default function Inventory() {
               </select>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 font-medium">Asset Status:</span>
+              <span className="text-xs font-medium text-slate-500">Asset Status:</span>
               <select
                 value={filterAssetStatus}
                 onChange={(e) => { setFilterAssetStatus(e.target.value); setCurrentPage(1); }}
-                className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700 outline-none focus:border-[#B0BF00]"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none focus:border-[#B0BF00]"
               >
                 <option value="all">All Status</option>
                 <option value="Available">Available</option>
@@ -389,7 +504,7 @@ export default function Inventory() {
             {(filterCategory !== "all" || filterStockStatus !== "all" || filterAssetStatus !== "all") && (
               <button
                 onClick={() => { setFilterCategory("all"); setFilterStockStatus("all"); setFilterAssetStatus("all"); setCurrentPage(1); }}
-                className="text-xs text-[#B0BF00] hover:underline font-medium"
+                className="text-xs font-medium text-[#8fa100] hover:underline"
               >
                 Clear filters
               </button>
@@ -518,20 +633,24 @@ export default function Inventory() {
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
-                        <button
-                          onClick={() => handleOpenEditModal(asset)}
-                          className="p-1.5 text-gray-400 hover:text-[#B0BF00] hover:bg-[#B0BF00]/10 rounded-lg transition-colors"
-                          title="Edit"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteTarget(asset)}
-                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {canEditInventory && (
+                          <>
+                            <button
+                              onClick={() => handleOpenEditModal(asset)}
+                              className="p-1.5 text-gray-400 hover:text-[#B0BF00] hover:bg-[#B0BF00]/10 rounded-lg transition-colors"
+                              title="Edit"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteTarget(asset)}
+                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -721,43 +840,63 @@ export default function Inventory() {
             <Button variant="outline" size="sm" onClick={() => setViewTarget(null)}>
               Close
             </Button>
-            <Button
-              size="sm"
-              className="bg-[#B0BF00] hover:bg-[#9aaa00] text-white"
-              onClick={() => {
-                if (viewTarget) {
-                  handleOpenEditModal(viewTarget);
-                }
-              }}
-            >
-              Edit Asset
-            </Button>
+            {canEditInventory && (
+              <Button
+                size="sm"
+                className="bg-[#B0BF00] hover:bg-[#9aaa00] text-white"
+                onClick={() => {
+                  if (viewTarget) {
+                    handleOpenEditModal(viewTarget);
+                  }
+                }}
+              >
+                Edit Asset
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Add/Edit Asset Dialog */}
-      <Dialog open={addModalOpen} onOpenChange={(open) => { setAddModalOpen(open); if (!open) setEditTarget(null); }}>
-        <DialogContent className="sm:max-w-2xl rounded-xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editTarget ? "Edit Asset" : "Add New Asset"}</DialogTitle>
-            <DialogDescription>
+      <Dialog
+        open={addModalOpen}
+        onOpenChange={(open) => {
+          if (!canEditInventory) return;
+          setAddModalOpen(open);
+          if (!open) setEditTarget(null);
+        }}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-[28px] border border-white/80 bg-white p-0 shadow-[0_32px_80px_rgba(15,23,42,0.18)] sm:max-w-3xl">
+          <DialogHeader className="border-b border-slate-100 bg-gradient-to-r from-[#f7fad8] via-white to-[#eef3c2] px-6 py-5 text-left">
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#B0BF00]/20 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7f8f00]">
+              <PackagePlus className="h-3.5 w-3.5" />
+              Asset Form
+            </div>
+            <DialogTitle className="mt-3 text-2xl font-bold tracking-tight text-slate-900">
+              {editTarget ? "Edit Asset" : "Add New Asset"}
+            </DialogTitle>
+            <DialogDescription className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
               {editTarget
-                ? "Update the asset details below"
-                : "Fill in the details to add a new asset to the inventory"}
+                ? "Update the asset details below to keep the inventory accurate and assignment-ready."
+                : "Provide the key asset details below to create a complete and presentable inventory record."}
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleFormSubmit} className="space-y-4 py-2">
+          <form onSubmit={handleFormSubmit} className="space-y-5 px-6 py-6">
             {/* Asset Information */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Asset Information
-              </h4>
+            <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50/70 p-5">
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                  Asset Information
+                </h4>
+                <p className="mt-1 text-sm text-slate-600">
+                  Define the basic identifying details for this inventory item.
+                </p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {/* Asset Type */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-gray-600">Asset Type *</Label>
+                  <Label className="text-xs font-medium text-slate-600">Asset Type *</Label>
                   <Select
                     value={formData.assetType}
                     onValueChange={(value) => setFormData((prev) => ({ ...prev, assetType: value }))}
@@ -775,7 +914,7 @@ export default function Inventory() {
 
                 {/* Brand */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-gray-600">Brand *</Label>
+                  <Label className="text-xs font-medium text-slate-600">Brand *</Label>
                   <Input
                     placeholder="e.g., Dell, HP, Logitech"
                     value={formData.brand}
@@ -787,7 +926,7 @@ export default function Inventory() {
 
                 {/* Model */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-gray-600">Model *</Label>
+                  <Label className="text-xs font-medium text-slate-600">Model *</Label>
                   <Input
                     placeholder="e.g., OptiPlex 7090"
                     value={formData.model}
@@ -799,7 +938,7 @@ export default function Inventory() {
 
                 {/* Serial Number */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-gray-600">Serial Number</Label>
+                  <Label className="text-xs font-medium text-slate-600">Serial Number</Label>
                   <Input
                     placeholder="e.g., DL-SU-78321"
                     value={formData.serialNumber}
@@ -811,14 +950,19 @@ export default function Inventory() {
             </div>
 
             {/* Stock & Pricing */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Stock & Pricing
-              </h4>
+            <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                  Stock And Pricing
+                </h4>
+                <p className="mt-1 text-sm text-slate-600">
+                  Capture the quantity thresholds and current pricing information.
+                </p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {/* Quantity */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-gray-600">Quantity *</Label>
+                  <Label className="text-xs font-medium text-slate-600">Quantity *</Label>
                   <Input
                     type="number"
                     placeholder="0"
@@ -832,7 +976,7 @@ export default function Inventory() {
 
                 {/* Min Quantity */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-gray-600">Min Quantity</Label>
+                  <Label className="text-xs font-medium text-slate-600">Minimum Quantity</Label>
                   <Input
                     type="number"
                     placeholder="0"
@@ -845,7 +989,7 @@ export default function Inventory() {
 
                 {/* Price */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-gray-600">Unit Price (₱)</Label>
+                  <Label className="text-xs font-medium text-slate-600">Unit Price (PHP)</Label>
                   <Input
                     type="number"
                     placeholder="0.00"
@@ -860,14 +1004,19 @@ export default function Inventory() {
             </div>
 
             {/* Status & Condition */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Status & Condition
-              </h4>
+            <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50/70 p-5">
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                  Status And Condition
+                </h4>
+                <p className="mt-1 text-sm text-slate-600">
+                  Set the asset availability, condition, and lifecycle details.
+                </p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {/* Asset Status */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-gray-600">Asset Status *</Label>
+                  <Label className="text-xs font-medium text-slate-600">Asset Status *</Label>
                   <Select
                     value={formData.assetStatus}
                     onValueChange={(value) => setFormData((prev) => ({ ...prev, assetStatus: value }))}
@@ -885,7 +1034,7 @@ export default function Inventory() {
 
                 {/* Condition */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-gray-600">Condition</Label>
+                  <Label className="text-xs font-medium text-slate-600">Condition</Label>
                   <Select
                     value={formData.condition}
                     onValueChange={(value) => setFormData((prev) => ({ ...prev, condition: value }))}
@@ -904,7 +1053,7 @@ export default function Inventory() {
 
                 {/* Purchase Date */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-gray-600">Purchase Date</Label>
+                  <Label className="text-xs font-medium text-slate-600">Purchase Date</Label>
                   <Input
                     type="date"
                     value={formData.purchaseDate}
@@ -916,12 +1065,17 @@ export default function Inventory() {
             </div>
 
             {/* Location */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Location
-              </h4>
+            <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                  Location
+                </h4>
+                <p className="mt-1 text-sm text-slate-600">
+                  Assign the department or storage location where this asset belongs.
+                </p>
+              </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-gray-600">Location</Label>
+                <Label className="text-xs font-medium text-slate-600">Location</Label>
                 <Select
                   value={formData.location}
                   onValueChange={(value) => setFormData((prev) => ({ ...prev, location: value }))}
@@ -934,16 +1088,19 @@ export default function Inventory() {
                     <SelectItem value="HR Department (MMS)">HR Department (MMS)</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-[10px] text-gray-400">Select the department location for this asset</p>
+                <p className="text-xs leading-5 text-slate-500">
+                  Select the department location where this asset will be stored or managed.
+                </p>
               </div>
             </div>
 
             {/* Form Actions */}
-            <DialogFooter className="gap-2 pt-4">
+            <DialogFooter className="gap-3 border-t border-slate-100 pt-5">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
+                className="h-11 rounded-xl border-slate-200 px-5 text-slate-600"
                 onClick={() => { setAddModalOpen(false); setEditTarget(null); }}
               >
                 Cancel
@@ -951,7 +1108,7 @@ export default function Inventory() {
               <Button
                 type="submit"
                 size="sm"
-                className="bg-[#B0BF00] hover:bg-[#9aaa00] text-white"
+                className="h-11 rounded-xl bg-[#B0BF00] px-5 text-white hover:bg-[#9aaa00]"
               >
                 {editTarget ? "Update Asset" : "Add Asset"}
               </Button>

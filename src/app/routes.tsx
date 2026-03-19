@@ -11,6 +11,7 @@ import SettingsPage from "./pages/Settings";
 import UserManagement from "./pages/UserManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
+import RoleRoute from "./components/RoleRoute";
 
 export const router = createBrowserRouter([
   {
@@ -28,12 +29,60 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
         children: [
-          { index: true, element: <Dashboard /> },
-          { path: "inventory", element: <Inventory /> },
-          { path: "assignments", element: <Assignments /> },
-          { path: "add-assignment", element: <AddAssignment /> },
-          { path: "edit-assignment/:id", element: <AddAssignment /> },
-          { path: "reports", element: <Reports /> },
+          {
+            index: true,
+            element: (
+              <RoleRoute allowedRoles={["Admin", "IT Officers", "HR Officers"]}>
+                <Dashboard />
+              </RoleRoute>
+            ),
+          },
+          {
+            path: "inventory",
+            element: (
+              <RoleRoute allowedRoles={["Admin", "IT Officers", "HR Officers"]}>
+                <Inventory />
+              </RoleRoute>
+            ),
+          },
+          {
+            path: "assignments",
+            element: (
+              <RoleRoute allowedRoles={["Admin", "IT Officers", "HR Officers"]}>
+                <Assignments />
+              </RoleRoute>
+            ),
+          },
+          {
+            path: "add-assignment",
+            element: (
+              <RoleRoute
+                allowedRoles={["Admin", "IT Officers"]}
+                message="Only Admin and IT Officers can create assignments."
+              >
+                <AddAssignment />
+              </RoleRoute>
+            ),
+          },
+          {
+            path: "edit-assignment/:id",
+            element: (
+              <RoleRoute
+                allowedRoles={["Admin", "IT Officers"]}
+                message="Only Admin and IT Officers can edit assignments."
+              >
+                <AddAssignment />
+              </RoleRoute>
+            ),
+          },
+          {
+            path: "reports",
+            element: (
+              <RoleRoute allowedRoles={["Admin", "IT Officers", "HR Officers"]}>
+                <Reports />
+              </RoleRoute>
+            ),
+          },
           { 
             path: "user-management", 
             element: (
@@ -42,7 +91,14 @@ export const router = createBrowserRouter([
               </AdminRoute>
             ) 
           },
-          { path: "settings", element: <SettingsPage /> },
+          {
+            path: "settings",
+            element: (
+              <RoleRoute allowedRoles={["Admin", "IT Officers", "HR Officers"]}>
+                <SettingsPage />
+              </RoleRoute>
+            ),
+          },
         ],
       },
     ],

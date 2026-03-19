@@ -26,6 +26,8 @@ import {
   Edit,
   Trash2,
   Eye,
+  UserX,
+  ShieldCheck,
   Shield,
   UserCog,
   Briefcase,
@@ -43,6 +45,8 @@ interface SystemUser {
   role: UserRole;
   created_at: string;
   auth_id: string;
+  is_blocked?: boolean;
+  blocked_at?: string | null;
 }
 
 export default function UserManagement() {
@@ -54,6 +58,7 @@ export default function UserManagement() {
   const [editTarget, setEditTarget] = useState<SystemUser | null>(null);
   const [viewTarget, setViewTarget] = useState<SystemUser | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<SystemUser | null>(null);
+  const [blockTarget, setBlockTarget] = useState<SystemUser | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -78,6 +83,7 @@ export default function UserManagement() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+
       setUsers(data || []);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -241,6 +247,40 @@ export default function UserManagement() {
     } catch (error: any) {
       console.error("Error deleting user:", error);
       toast.error(error.message || "Failed to delete user");
+    }
+  };
+
+  const handleToggleBlockUser = async () => {
+    if (!blockTarget) return;
+
+    if (user && blockTarget.user_id === user.id) {
+      toast.error("You cannot block your own account.");
+      return;
+    }
+
+    try {
+      const shouldBlock = !blockTarget.is_blocked;
+      const { error } = await supabase
+        .from("users")
+        .update({
+          is_blocked: shouldBlock,
+          blocked_at: shouldBlock ? new Date().toISOString() : null,
+        })
+        .eq("user_id", blockTarget.user_id);
+
+      if (error) throw error;
+
+      toast.success(
+        shouldBlock
+          ? `${blockTarget.full_name} has been blocked successfully.`
+          : `${blockTarget.full_name} has been unblocked successfully.`
+      );
+
+      setBlockTarget(null);
+      fetchUsers();
+    } catch (error: any) {
+      console.error("Error updating block status:", error);
+      toast.error(error.message || "Failed to update user block status");
     }
   };
 
@@ -419,6 +459,9 @@ export default function UserManagement() {
                   Role
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Created
                 </th>
                 <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
@@ -429,7 +472,7 @@ export default function UserManagement() {
             <tbody className="divide-y divide-gray-100">
               {paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-16 text-center">
+                  <td colSpan={6} className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
                         <Users className="w-8 h-8 text-gray-400" />
@@ -468,6 +511,22 @@ export default function UserManagement() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-bold ${
+                            systemUser.is_blocked
+                              ? "border-red-200 bg-red-50 text-red-700"
+                              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          }`}
+                        >
+                          {systemUser.is_blocked ? (
+                            <UserX className="w-4 h-4" />
+                          ) : (
+                            <ShieldCheck className="w-4 h-4" />
+                          )}
+                          {systemUser.is_blocked ? "Blocked" : "Active"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <p className="text-sm text-gray-600">
                           {new Date(systemUser.created_at).toLocaleDateString()}
                         </p>
@@ -487,6 +546,22 @@ export default function UserManagement() {
                             title="Edit"
                           >
                             <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setBlockTarget(systemUser)}
+                            disabled={user?.id === systemUser.user_id}
+                            className={`p-2 rounded-xl transition-all duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-40 ${
+                              systemUser.is_blocked
+                                ? "text-gray-400 hover:text-emerald-600 hover:bg-emerald-50"
+                                : "text-gray-400 hover:text-amber-600 hover:bg-amber-50"
+                            }`}
+                            title={systemUser.is_blocked ? "Unblock" : "Block"}
+                          >
+                            {systemUser.is_blocked ? (
+                              <ShieldCheck className="w-4 h-4" />
+                            ) : (
+                              <UserX className="w-4 h-4" />
+                            )}
                           </button>
                           <button
                             onClick={() => setDeleteTarget(systemUser)}
@@ -687,6 +762,31 @@ export default function UserManagement() {
                 </span>
               </div>
               <div>
+                <p className="text-xs text-gray-500 font-medium mb-1">Status</p>
+                <span
+                  className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border ${
+                    viewTarget.is_blocked
+                      ? "border-red-200 bg-red-50 text-red-700"
+                      : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                  }`}
+                >
+                  {viewTarget.is_blocked ? (
+                    <UserX className="w-3.5 h-3.5" />
+                  ) : (
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                  )}
+                  {viewTarget.is_blocked ? "Blocked" : "Active"}
+                </span>
+              </div>
+              {viewTarget.is_blocked && viewTarget.blocked_at && (
+                <div>
+                  <p className="text-xs text-gray-500 font-medium mb-1">Blocked At</p>
+                  <p className="text-sm text-gray-800">
+                    {new Date(viewTarget.blocked_at).toLocaleString()}
+                  </p>
+                </div>
+              )}
+              <div>
                 <p className="text-xs text-gray-500 font-medium mb-1">Created</p>
                 <p className="text-sm text-gray-800">
                   {new Date(viewTarget.created_at).toLocaleString()}
@@ -697,6 +797,52 @@ export default function UserManagement() {
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setViewTarget(null)}>
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Block Confirmation */}
+      <Dialog open={!!blockTarget} onOpenChange={(open) => !open && setBlockTarget(null)}>
+        <DialogContent className="sm:max-w-sm rounded-xl">
+          <DialogHeader>
+            <DialogTitle>
+              {blockTarget?.is_blocked ? "Unblock User" : "Block User"}
+            </DialogTitle>
+            <DialogDescription>
+              {blockTarget?.is_blocked ? (
+                <>
+                  Restore access for{" "}
+                  <span className="font-semibold text-gray-800">
+                    "{blockTarget?.full_name}"
+                  </span>
+                  ?
+                </>
+              ) : (
+                <>
+                  Block{" "}
+                  <span className="font-semibold text-gray-800">
+                    "{blockTarget?.full_name}"
+                  </span>
+                  ? They will no longer be able to sign in until unblocked.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" size="sm" onClick={() => setBlockTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              className={
+                blockTarget?.is_blocked
+                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                  : "bg-amber-500 hover:bg-amber-600 text-white"
+              }
+              onClick={handleToggleBlockUser}
+            >
+              {blockTarget?.is_blocked ? "Unblock" : "Block"}
             </Button>
           </DialogFooter>
         </DialogContent>

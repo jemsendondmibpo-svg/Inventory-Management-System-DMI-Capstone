@@ -1,6 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Plus, Search, Edit, Trash2, Eye, UserCheck, ChevronLeft, ChevronRight, Map, List } from "lucide-react";
+import {
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  UserCheck,
+  ChevronLeft,
+  ChevronRight,
+  Map,
+  List,
+  ClipboardList,
+  ShieldCheck,
+  Wrench,
+  MapPinned,
+  PackagePlus,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -14,6 +29,8 @@ import { Button } from "../components/ui/button";
 import { useAssignments } from "../context/AssignmentsContext";
 import FloorMapIT from "../components/FloorMapIT";
 import FloorMapHR from "../components/FloorMapHR";
+import { useAuth } from "../context/AuthContext";
+import { canManageAssignments } from "../lib/access";
 
 const STATUS_STYLES: Record<string, string> = {
   Assigned: "bg-green-100 text-green-700",
@@ -25,6 +42,7 @@ const ITEMS_PER_PAGE = 6;
 
 export default function Assignments() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { assignments, deleteAssignment } = useAssignments();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -33,6 +51,7 @@ export default function Assignments() {
   const [deleteTarget, setDeleteTarget] = useState<typeof assignments[0] | null>(null);
   const [activeTab, setActiveTab] = useState<"list" | "map">("list");
   const [selectedDepartment, setSelectedDepartment] = useState<"IT Department" | "HR Department">("IT Department");
+  const canEditAssignments = user ? canManageAssignments(user.role) : false;
 
   const filtered = assignments.filter((a) => {
     const q = search.toLowerCase();
@@ -54,6 +73,10 @@ export default function Assignments() {
   );
 
   const handleDelete = () => {
+    if (!canEditAssignments) {
+      toast.error("You have view-only access to Assignments.");
+      return;
+    }
     if (!deleteTarget) return;
     deleteAssignment(deleteTarget.assignmentId);
     toast.success(`Assignment "${deleteTarget.assignmentId}" deleted.`);
@@ -61,98 +84,149 @@ export default function Assignments() {
   };
 
   const summaryCards = [
-    { label: "Total Assignments", value: assignments.length, color: "text-gray-800" },
-    { label: "Assigned", value: assignments.filter((a) => a.status === "Assigned").length, color: "text-green-600" },
-    { label: "Available", value: assignments.filter((a) => a.status === "Available").length, color: "text-blue-600" },
-    { label: "Under Maintenance", value: assignments.filter((a) => a.status === "Under Maintenance").length, color: "text-amber-600" },
+    {
+      label: "Total Assignments",
+      value: assignments.length,
+      description: "All assignment records currently tracked",
+      icon: ClipboardList,
+      accent: "from-lime-100 via-white to-lime-50",
+      iconClass: "text-[#93a300]",
+    },
+    {
+      label: "Assigned",
+      value: assignments.filter((a) => a.status === "Assigned").length,
+      description: "Assets actively deployed to staff",
+      icon: UserCheck,
+      accent: "from-emerald-100 via-white to-emerald-50",
+      iconClass: "text-emerald-600",
+    },
+    {
+      label: "Available",
+      value: assignments.filter((a) => a.status === "Available").length,
+      description: "Assets ready for assignment",
+      icon: ShieldCheck,
+      accent: "from-sky-100 via-white to-sky-50",
+      iconClass: "text-sky-600",
+    },
+    {
+      label: "Under Maintenance",
+      value: assignments.filter((a) => a.status === "Under Maintenance").length,
+      description: "Assets temporarily unavailable",
+      icon: Wrench,
+      accent: "from-amber-100 via-white to-orange-50",
+      iconClass: "text-amber-600",
+    },
   ];
 
-  // IT assignments (those with seat numbers) for the floor map
-  // Show ALL assignments that have seat numbers assigned, regardless of department
   const itAssignments = assignments.filter((a) => a.seatNumber != null);
-  
-  // HR assignments (from HR Department)
   const hrAssignments = assignments.filter((a) => a.department === "HR Department");
 
   return (
-    <div className="space-y-4 md:space-y-5">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        {summaryCards.map((c, i) => (
-          <div key={i} className="bg-white/80 backdrop-blur-xl rounded-xl shadow-[0_4px_20px_rgba(176,191,0,0.08)] border border-[#B0BF00]/20 px-3 md:px-5 py-3 md:py-4 hover:shadow-[0_8px_30px_rgba(176,191,0,0.15)] transition-all duration-300">
-            <p className="text-[10px] md:text-xs text-gray-500 truncate">{c.label}</p>
-            <p className={`text-xl md:text-2xl font-semibold mt-1 ${c.color}`}>{c.value}</p>
-          </div>
-        ))}
+    <div className="space-y-5 md:space-y-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {summaryCards.map((card) => {
+          const Icon = card.icon;
+
+          return (
+            <div
+              key={card.label}
+              className={`overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br ${card.accent} p-5 shadow-[0_20px_45px_rgba(15,23,42,0.08)]`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                    {card.label}
+                  </p>
+                  <p className="mt-3 text-2xl font-bold tracking-tight text-slate-900">
+                    {card.value}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-white/90 p-3 shadow-sm">
+                  <Icon className={`h-5 w-5 ${card.iconClass}`} />
+                </div>
+              </div>
+              <p className="mt-4 text-sm leading-6 text-slate-600">{card.description}</p>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Tab Switch */}
-      <div className="flex items-center gap-1 bg-white/80 backdrop-blur-xl rounded-xl shadow-[0_4px_20px_rgba(176,191,0,0.08)] border border-[#B0BF00]/20 p-1 w-full sm:w-fit overflow-x-auto">
+      <div className="inline-flex w-full items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white/90 p-1 shadow-sm sm:w-fit">
         <button
           onClick={() => setActiveTab("list")}
-          className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-            activeTab === "list" ? "bg-[#B0BF00] text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap ${
+            activeTab === "list" ? "bg-[#B0BF00] text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
           }`}
         >
-          <List className="w-3.5 h-3.5" />
+          <List className="h-4 w-4" />
           <span className="hidden sm:inline">Assignment List</span>
           <span className="sm:hidden">List</span>
         </button>
         <button
           onClick={() => setActiveTab("map")}
-          className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-            activeTab === "map" ? "bg-[#B0BF00] text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap ${
+            activeTab === "map" ? "bg-[#B0BF00] text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
           }`}
         >
-          <Map className="w-3.5 h-3.5" />
+          <Map className="h-4 w-4" />
           <span className="hidden sm:inline">Floor Map</span>
           <span className="sm:hidden">Map</span>
         </button>
       </div>
 
-      {/* ========== LIST TAB ========== */}
       {activeTab === "list" && (
-        <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-[0_4px_20px_rgba(176,191,0,0.08)] border border-[#B0BF00]/20 overflow-hidden hover:shadow-[0_8px_30px_rgba(176,191,0,0.15)] transition-all duration-300">
-          {/* Table Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-4 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-800">Asset Assignments</h3>
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Search */}
-              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 w-48">
-                <Search className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={search}
-                  onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-                  className="bg-transparent text-xs text-gray-600 placeholder-gray-400 outline-none w-full"
-                />
+        <div className="overflow-hidden rounded-[28px] border border-[#B0BF00]/15 bg-white/90 shadow-[0_24px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 hover:shadow-[0_26px_70px_rgba(15,23,42,0.12)]">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-[#f7fad8] via-white to-[#eef3c2] px-4 py-5 md:px-6 md:py-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#B0BF00]/20 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7f8f00]">
+                  <ClipboardList className="h-3.5 w-3.5" />
+                  Assignments Module
+                </div>
+                <h3 className="mt-3 text-xl font-bold tracking-tight text-slate-900 md:text-2xl">
+                  Asset Assignments
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Manage asset deployment records with a clearer workspace for tracking assignees, workstations, and assignment status.
+                </p>
               </div>
 
-              {/* Status Filter */}
-              <select
-                value={filterStatus}
-                onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-                className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white text-gray-600 outline-none focus:border-[#B0BF00]"
-              >
-                <option value="all">All Status</option>
-                <option value="Assigned">Assigned</option>
-                <option value="Available">Available</option>
-                <option value="Under Maintenance">Under Maintenance</option>
-              </select>
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <div className="flex w-full items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-sm sm:w-60">
+                  <Search className="h-4 w-4 flex-shrink-0 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search assignments..."
+                    value={search}
+                    onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+                    className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 outline-none"
+                  />
+                </div>
 
-              {/* Add Button */}
-              <button
-                onClick={() => navigate("/dashboard/add-assignment")}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#B0BF00] hover:bg-[#9aaa00] text-white rounded-lg text-xs font-medium transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                New Assignment
-              </button>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 outline-none focus:border-[#B0BF00] shadow-sm"
+                >
+                  <option value="all">All Status</option>
+                  <option value="Assigned">Assigned</option>
+                  <option value="Available">Available</option>
+                  <option value="Under Maintenance">Under Maintenance</option>
+                </select>
+
+                {canEditAssignments && (
+                  <button
+                    onClick={() => navigate("/dashboard/add-assignment")}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#B0BF00] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(176,191,0,0.28)] transition-colors hover:bg-[#9aaa00]"
+                  >
+                    <PackagePlus className="h-4 w-4" />
+                    New Assignment
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -186,17 +260,17 @@ export default function Assignments() {
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-[#B0BF00]/10 flex items-center justify-center flex-shrink-0">
-                            <UserCheck className="w-3.5 h-3.5 text-[#B0BF00]" />
+                          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-[#B0BF00]/10">
+                            <UserCheck className="h-3.5 w-3.5 text-[#B0BF00]" />
                           </div>
                           <div>
-                            <span className="text-sm font-medium text-gray-800 block">{assignment.assetName}</span>
+                            <span className="block text-sm font-medium text-gray-800">{assignment.assetName}</span>
                             <span className="text-[10px] font-mono text-gray-400">{assignment.assetSKU}</span>
                           </div>
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={`text-sm ${!assignment.assignedTo || assignment.assignedTo === "Unassigned" ? "text-gray-400 italic" : "text-gray-700"}`}>
+                        <span className={`text-sm ${!assignment.assignedTo || assignment.assignedTo === "Unassigned" ? "italic text-gray-400" : "text-gray-700"}`}>
                           {assignment.assignedTo || "Unassigned"}
                         </span>
                       </td>
@@ -207,7 +281,7 @@ export default function Assignments() {
                         <div>
                           <span className="text-xs text-gray-600">{assignment.workstation}</span>
                           {assignment.seatNumber && (
-                            <span className="ml-1.5 text-[10px] font-mono bg-[#B0BF00]/10 text-[#8a9200] px-1.5 py-0.5 rounded">
+                            <span className="ml-1.5 rounded bg-[#B0BF00]/10 px-1.5 py-0.5 text-[10px] font-mono text-[#8a9200]">
                               #{assignment.seatNumber}
                             </span>
                           )}
@@ -217,7 +291,7 @@ export default function Assignments() {
                         <span className="text-xs text-gray-500">{assignment.floor}</span>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded ${STATUS_STYLES[assignment.status]}`}>
+                        <span className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${STATUS_STYLES[assignment.status]}`}>
                           {assignment.status}
                         </span>
                       </td>
@@ -225,25 +299,29 @@ export default function Assignments() {
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => setViewTarget(assignment)}
-                            className="p-1.5 text-gray-400 hover:text-[#B0BF00] hover:bg-[#B0BF00]/10 rounded-lg transition-colors"
+                            className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-[#B0BF00]/10 hover:text-[#B0BF00]"
                             title="View"
                           >
-                            <Eye className="w-3.5 h-3.5" />
+                            <Eye className="h-3.5 w-3.5" />
                           </button>
-                          <button
-                            onClick={() => navigate(`/dashboard/edit-assignment/${assignment.assignmentId}`)}
-                            className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Edit"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteTarget(assignment)}
-                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          {canEditAssignments && (
+                            <>
+                              <button
+                                onClick={() => navigate(`/dashboard/edit-assignment/${assignment.assignmentId}`)}
+                                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-blue-50 hover:text-blue-500"
+                                title="Edit"
+                              >
+                                <Edit className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => setDeleteTarget(assignment)}
+                                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                                title="Delete"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -253,88 +331,89 @@ export default function Assignments() {
             </table>
           </div>
 
-          {/* Pagination */}
-          <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100">
-            <p className="text-xs text-[#B0BF00] font-medium">
+          <div className="flex items-center justify-between border-t border-gray-100 px-6 py-3">
+            <p className="text-xs font-medium text-[#B0BF00]">
               Showing {paginated.length} of {filtered.length} assignments
             </p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <ChevronLeft className="w-3 h-3" />
+                <ChevronLeft className="h-3 w-3" />
                 Previous
               </button>
-              <span className="text-xs text-gray-500 px-1">{currentPage} / {totalPages}</span>
+              <span className="px-1 text-xs text-gray-500">{currentPage} / {totalPages}</span>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Next
-                <ChevronRight className="w-3 h-3" />
+                <ChevronRight className="h-3 w-3" />
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ========== FLOOR MAP TAB ========== */}
       {activeTab === "map" && (
-        <div className="bg-white/80 backdrop-blur-xl rounded-xl shadow-[0_4px_20px_rgba(176,191,0,0.08)] border border-[#B0BF00]/20 p-6 hover:shadow-[0_8px_30px_rgba(176,191,0,0.15)] transition-all duration-300">
-          {/* Department Selector and Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div className="overflow-hidden rounded-[28px] border border-[#B0BF00]/15 bg-white/90 shadow-[0_24px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 hover:shadow-[0_26px_70px_rgba(15,23,42,0.12)]">
+          <div className="flex flex-col gap-4 border-b border-slate-100 bg-gradient-to-r from-[#f7fad8] via-white to-[#eef3c2] px-6 py-6 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-gray-800">
-                {selectedDepartment} Floor Map — {selectedDepartment === "IT Department" ? "2nd Floor" : "3rd Floor"}
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#B0BF00]/20 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7f8f00]">
+                <MapPinned className="h-3.5 w-3.5" />
+                Assignment Map
+              </div>
+              <h3 className="mt-3 text-xl font-bold tracking-tight text-slate-900">
+                {selectedDepartment} Floor Map - {selectedDepartment === "IT Department" ? "2nd Floor" : "3rd Floor"}
               </h3>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="mt-2 text-sm leading-6 text-slate-600">
                 {selectedDepartment === "IT Department"
                   ? "Assignments are numbered sequentially by date (oldest = #1). Click any seat to view details."
                   : "View all HR Department asset assignments by workstation area."}
               </p>
             </div>
             <div className="flex items-center gap-2">
-              {/* Department Selector */}
               <select
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value as "IT Department" | "HR Department")}
-                className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-600 outline-none focus:border-[#B0BF00]"
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 outline-none focus:border-[#B0BF00] shadow-sm"
               >
                 <option value="IT Department">IT Department</option>
                 <option value="HR Department">HR Department</option>
               </select>
-              
-              {/* New Assignment Button */}
-              <button
-                onClick={() => navigate("/dashboard/add-assignment")}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#B0BF00] hover:bg-[#9aaa00] text-white rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">New Assignment</span>
-                <span className="sm:hidden">New</span>
-              </button>
+
+              {canEditAssignments && (
+                <button
+                  onClick={() => navigate("/dashboard/add-assignment")}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-[#B0BF00] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(176,191,0,0.28)] transition-colors hover:bg-[#9aaa00] whitespace-nowrap"
+                >
+                  <PackagePlus className="h-4 w-4" />
+                  <span className="hidden sm:inline">New Assignment</span>
+                  <span className="sm:hidden">New</span>
+                </button>
+              )}
             </div>
           </div>
-          
-          {/* Display the appropriate floor map */}
-          {selectedDepartment === "IT Department" ? (
-            <FloorMapIT assignments={itAssignments} />
-          ) : (
-            <FloorMapHR assignments={hrAssignments} />
-          )}
+
+          <div className="p-6">
+            {selectedDepartment === "IT Department" ? (
+              <FloorMapIT assignments={itAssignments} />
+            ) : (
+              <FloorMapHR assignments={hrAssignments} />
+            )}
+          </div>
         </div>
       )}
 
-      {/* View Assignment Dialog */}
       <Dialog open={!!viewTarget} onOpenChange={(o) => !o && setViewTarget(null)}>
         <DialogContent className="sm:max-w-md rounded-xl">
           <DialogHeader>
             <DialogTitle>Assignment Details</DialogTitle>
             <DialogDescription>
-              {viewTarget?.assignmentId} · {viewTarget?.assetSKU}
+              {viewTarget?.assignmentId} - {viewTarget?.assetSKU}
             </DialogDescription>
           </DialogHeader>
           {viewTarget && (
@@ -355,7 +434,7 @@ export default function Assignments() {
               ))}
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-500">Status</span>
-                <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded ${STATUS_STYLES[viewTarget.status]}`}>
+                <span className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase ${STATUS_STYLES[viewTarget.status]}`}>
                   {viewTarget.status}
                 </span>
               </div>
@@ -363,22 +442,23 @@ export default function Assignments() {
           )}
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setViewTarget(null)}>Close</Button>
-            <Button
-              size="sm"
-              className="bg-[#B0BF00] hover:bg-[#9aaa00] text-white"
-              onClick={() => {
-                navigate(`/dashboard/edit-assignment/${viewTarget?.assignmentId}`);
-                setViewTarget(null);
-              }}
-            >
-              <Edit className="w-3.5 h-3.5 mr-1" />
-              Edit Assignment
-            </Button>
+            {canEditAssignments && (
+              <Button
+                size="sm"
+                className="bg-[#B0BF00] text-white hover:bg-[#9aaa00]"
+                onClick={() => {
+                  navigate(`/dashboard/edit-assignment/${viewTarget?.assignmentId}`);
+                  setViewTarget(null);
+                }}
+              >
+                <Edit className="mr-1 h-3.5 w-3.5" />
+                Edit Assignment
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirm */}
       <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
         <DialogContent className="sm:max-w-sm rounded-xl">
           <DialogHeader>
@@ -390,7 +470,7 @@ export default function Assignments() {
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-            <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={handleDelete}>
+            <Button size="sm" className="bg-red-500 text-white hover:bg-red-600" onClick={handleDelete}>
               Delete
             </Button>
           </DialogFooter>

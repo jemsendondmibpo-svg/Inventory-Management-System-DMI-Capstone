@@ -2,17 +2,29 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback 
 import { supabase } from "../../lib/supabase";
 
 export type UserRole = "Admin" | "IT Officers" | "HR Officers";
+export type LoginFailureReason =
+  | "invalid_credentials"
+  | "blocked"
+  | "role_mismatch"
+  | "profile_not_found"
+  | "unknown";
+
+export interface LoginResult {
+  success: boolean;
+  reason?: LoginFailureReason;
+}
 
 interface User {
   id: string;
   email: string;
   name: string;
   role: UserRole;
+  isBlocked?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string, role: UserRole) => Promise<boolean>;
+  login: (email: string, password: string, role: UserRole) => Promise<LoginResult>;
   signup: (email: string, password: string, name: string) => Promise<boolean>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -27,6 +39,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const clearAuthState = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
+  const applyProfile = async (profile: any) => {
+    const isBlocked = Boolean(profile?.is_blocked);
+
+    if (isBlocked) {
+      await supabase.auth.signOut();
+      clearAuthState();
+      return false;
+    }
+
+    setUser({
+      id: profile.user_id,
+      email: profile.email,
+      name: profile.full_name || profile.email,
+      role: profile.role as UserRole,
+      isBlocked,
+    });
+    setIsAuthenticated(true);
+    return true;
+  };
+
   const checkSession = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -39,13 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .single();
         
         if (profile) {
-          setUser({
-            id: profile.user_id,
-            email: profile.email,
-            name: profile.full_name || profile.email,
-            role: profile.role as UserRole,
-          });
-          setIsAuthenticated(true);
+          await applyProfile(profile);
         }
       }
     } catch (error) {
@@ -67,13 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .single();
         
         if (profile) {
-          setUser({
-            id: profile.user_id,
-            email: profile.email,
-            name: profile.full_name || profile.email,
-            role: profile.role as UserRole,
-          });
-          setIsAuthenticated(true);
+          await applyProfile(profile);
         }
       }
     } catch (error) {
@@ -115,39 +140,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [user?.id, refreshUser]); // Re-subscribe when user id changes
 
-  const login = async (email: string, password: string, role: UserRole): Promise<boolean> => {
+  const login = async (
+    email: string,
+    password: string,
+    role: UserRole
+  ): Promise<LoginResult> => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        return { success: false, reason: "invalid_credentials" };
+      }
 
       if (data.user) {
         // Get user profile
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('users')
           .select('*')
           .eq('auth_id', data.user.id)
           .single();
 
+        if (profileError || !profile) {
+          await supabase.auth.signOut();
+          clearAuthState();
+          return { success: false, reason: "profile_not_found" };
+        }
+
         if (profile) {
+          const actualRole = profile.role as UserRole;
+          const isBlocked = Boolean(profile.is_blocked);
+
+          if (isBlocked) {
+            await supabase.auth.signOut();
+            clearAuthState();
+            return { success: false, reason: "blocked" };
+          }
+
+          if (actualRole !== role) {
+            await supabase.auth.signOut();
+            clearAuthState();
+            console.error("Role mismatch during login:", {
+              selectedRole: role,
+              actualRole,
+            });
+            return { success: false, reason: "role_mismatch" };
+          }
+
           setUser({
             id: profile.user_id,
             email: profile.email,
             name: profile.full_name || profile.email,
-            role: profile.role as UserRole,
+            role: actualRole,
+            isBlocked,
           });
           setIsAuthenticated(true);
-          return true;
+          return { success: true };
         }
       }
 
-      return false;
+      return { success: false, reason: "unknown" };
     } catch (error) {
       console.error('Login error:', error);
-      return false;
+      return { success: false, reason: "unknown" };
     }
   };
 
@@ -204,8 +261,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await supabase.auth.signOut();
-      setUser(null);
-      setIsAuthenticated(false);
+      clearAuthState();
     } catch (error) {
       console.error('Logout error:', error);
     }

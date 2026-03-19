@@ -4,7 +4,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { toast } from "sonner";
-import { useAuth, UserRole } from "../context/AuthContext";
+import { useAuth, UserRole, LoginFailureReason } from "../context/AuthContext";
 import { supabase } from "../../lib/supabase";
 import { Mail, Lock, ArrowRight, Shield, Zap, CheckCircle2, Users, UserCog, Briefcase } from "lucide-react";
 
@@ -22,24 +22,65 @@ export default function Login() {
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
 
+  const getLoginMessage = (reason: LoginFailureReason) => {
+    switch (reason) {
+      case "invalid_credentials":
+        return "Wrong email or password. Please check your credentials and try again.";
+      case "blocked":
+        return "Your account has been blocked from the system. Please contact the administrator.";
+      case "role_mismatch":
+        return "The selected role does not match your account. Please choose the correct role.";
+      case "profile_not_found":
+        return "Your account profile could not be found. Please contact the administrator.";
+      default:
+        return "Unable to sign in right now. Please try again.";
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setSelectedRole(null);
 
-    // Just validate credentials first, don't log in yet
     const { data, error } = await supabase.auth.signInWithPassword({
       email: formData.email,
       password: formData.password,
     });
 
-    if (!error && data.user) {
-      // Credentials are valid, show role selection
-      setShowRoleSelection(true);
-      toast.success("Credentials verified! Please select your role.");
-    } else {
-      toast.error("Invalid email or password. Please check your credentials or create an account.", {
+    if (error || !data.user) {
+      setShowRoleSelection(false);
+      toast.error(getLoginMessage("invalid_credentials"), {
         duration: 5000,
       });
+      setIsLoading(false);
+      return;
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("users")
+      .select("role, is_blocked")
+      .eq("auth_id", data.user.id)
+      .single();
+
+    await supabase.auth.signOut();
+
+    if (profileError || !profile) {
+      setShowRoleSelection(false);
+      toast.error(getLoginMessage("profile_not_found"), {
+        duration: 5000,
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (profile.is_blocked) {
+      setShowRoleSelection(false);
+      toast.error(getLoginMessage("blocked"), {
+        duration: 6000,
+      });
+    } else {
+      setShowRoleSelection(true);
+      toast.success("Credentials verified! Please select your role.");
     }
 
     setIsLoading(false);
@@ -51,12 +92,19 @@ export default function Login() {
 
   const handleContinue = async () => {
     if (selectedRole) {
-      const success = await login(formData.email, formData.password, selectedRole);
-      if (success) {
+      const result = await login(formData.email, formData.password, selectedRole);
+      if (result.success) {
         toast.success(`Logged in as ${selectedRole}`);
         navigate("/dashboard");
       } else {
-        toast.error("Failed to complete login. Please try again.");
+        toast.error(getLoginMessage(result.reason || "unknown"), {
+          duration: result.reason === "blocked" ? 6000 : 5000,
+        });
+
+        if (result.reason === "blocked" || result.reason === "invalid_credentials") {
+          setShowRoleSelection(false);
+          setSelectedRole(null);
+        }
       }
     }
   };

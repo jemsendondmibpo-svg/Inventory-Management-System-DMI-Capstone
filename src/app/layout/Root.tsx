@@ -28,6 +28,7 @@ import { useAuth } from "../context/AuthContext";
 import { NotificationPanel } from "../components/NotificationPanel";
 import { RealtimeIndicator } from "../components/RealtimeIndicator";
 import { toast } from "sonner";
+import { canAccessModule } from "../lib/access";
 
 export default function Root() {
   const location = useLocation();
@@ -79,39 +80,64 @@ export default function Root() {
     navigate("/");
   };
 
-  const navigation = [
-    {
-      name: "Dashboard",
-      path: "/dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      name: "Inventory",
-      path: "/dashboard/inventory",
-      icon: Package,
-    },
-    {
-      name: "Assignments",
-      path: "/dashboard/assignments",
-      icon: UserCheck,
-    },
-    {
-      name: "Reports",
-      path: "/dashboard/reports",
-      icon: BarChart3,
-    },
-    // Only show User Management for Admin users
-    ...(user?.role === "Admin" ? [{
-      name: "User Management",
-      path: "/dashboard/user-management",
-      icon: Users,
-    }] : []),
-    {
-      name: "Settings",
-      path: "/dashboard/settings",
-      icon: Settings,
-    },
-  ];
+  const navigation = user
+    ? [
+        ...(canAccessModule(user.role, "dashboard")
+          ? [
+              {
+                name: "Dashboard",
+                path: "/dashboard",
+                icon: LayoutDashboard,
+              },
+            ]
+          : []),
+        ...(canAccessModule(user.role, "inventory")
+          ? [
+              {
+                name: "Inventory",
+                path: "/dashboard/inventory",
+                icon: Package,
+              },
+            ]
+          : []),
+        ...(canAccessModule(user.role, "assignments")
+          ? [
+              {
+                name: "Assignments",
+                path: "/dashboard/assignments",
+                icon: UserCheck,
+              },
+            ]
+          : []),
+        ...(canAccessModule(user.role, "reports")
+          ? [
+              {
+                name: "Reports",
+                path: "/dashboard/reports",
+                icon: BarChart3,
+              },
+            ]
+          : []),
+        ...(canAccessModule(user.role, "user-management")
+          ? [
+              {
+                name: "User Management",
+                path: "/dashboard/user-management",
+                icon: Users,
+              },
+            ]
+          : []),
+        ...(canAccessModule(user.role, "settings")
+          ? [
+              {
+                name: "Settings",
+                path: "/dashboard/settings",
+                icon: Settings,
+              },
+            ]
+          : []),
+      ]
+    : [];
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {
@@ -153,8 +179,11 @@ export default function Root() {
     mobile = false,
   }: {
     mobile?: boolean;
-  }) => (
-    <>
+  }) => {
+    const SidebarRoleIcon = getRoleIcon(user?.role || "");
+
+    return (
+      <>
       {/* Logo area */}
       <div className="flex items-center justify-between h-16 px-5 border-b border-white/10">
         <div className="flex items-center gap-2.5">
@@ -206,8 +235,52 @@ export default function Root() {
           );
         })}
       </nav>
+
+      {/* Sidebar Footer */}
+      <div className="border-t border-white/10 p-3">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-3 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B0BF00] to-[#8a9600] text-sm font-bold text-[#1a1d27] shadow-lg">
+              {user ? getInitials(user.name) : "U"}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-white">
+                {user?.name || "User"}
+              </p>
+              <div className="mt-1 flex items-center gap-1.5 text-xs text-white/65">
+                <SidebarRoleIcon className="h-3.5 w-3.5 text-[#B0BF00]" />
+                <span className="truncate">{user?.role || "User"}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <Link
+              to="/dashboard/settings"
+              onClick={() => mobile && setIsSidebarOpen(false)}
+              className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white/80 transition-all duration-200 hover:bg-white/10 hover:text-white"
+            >
+              <Settings className="h-4 w-4" />
+              Profile
+            </Link>
+            <button
+              onClick={() => {
+                if (mobile) {
+                  setIsSidebarOpen(false);
+                }
+                handleLogout();
+              }}
+              className="flex items-center justify-center gap-2 rounded-xl bg-[#B0BF00] px-3 py-2 text-xs font-semibold text-[#1a1d27] transition-all duration-200 hover:bg-[#c3d200]"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
     </>
-  );
+    );
+  };
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-[#B0BF00]/5 overflow-hidden relative">
