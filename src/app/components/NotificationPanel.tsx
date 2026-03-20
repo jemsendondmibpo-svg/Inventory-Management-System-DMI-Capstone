@@ -65,11 +65,11 @@ export function NotificationPanel() {
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+        className="relative rounded-lg p-1.5 text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-100 dark:hover:bg-[#132338] dark:hover:text-white"
       >
-        <Bell className="w-5 h-5" />
+        <Bell className="h-5 w-5" />
         {totalNotifications > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+          <span className="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-red-500 px-1 text-[10px] font-bold text-white dark:border-[#0d1a2b]">
             {totalNotifications > 99 ? "99+" : totalNotifications}
           </span>
         )}
@@ -97,9 +97,9 @@ export function NotificationPanel() {
             <div className="max-h-[400px] overflow-y-auto">
               {totalNotifications === 0 ? (
                 <div className="px-4 py-8 text-center">
-                  <Bell className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">No notifications</p>
-                  <p className="text-xs text-gray-400 mt-1">All inventory items are in good condition</p>
+                  <Bell className="mx-auto mb-2 h-10 w-10 text-slate-400 dark:text-slate-200" />
+                  <p className="text-sm text-slate-600 dark:text-slate-100">No notifications</p>
+                  <p className="mt-1 text-xs text-slate-400 dark:text-slate-300">All inventory items are in good condition</p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
@@ -107,8 +107,8 @@ export function NotificationPanel() {
                   {outOfStockItems.length > 0 && (
                     <div className="px-4 py-3">
                       <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                          <PackageX className="w-4 h-4 text-red-600" />
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/40">
+                          <PackageX className="h-4 w-4 text-red-700 dark:text-red-300" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
@@ -140,8 +140,8 @@ export function NotificationPanel() {
                   {lowStockItems.length > 0 && (
                     <div className="px-4 py-3">
                       <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                          <AlertTriangle className="w-4 h-4 text-orange-600" />
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-950/40">
+                          <AlertTriangle className="h-4 w-4 text-orange-700 dark:text-orange-300" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
@@ -173,8 +173,8 @@ export function NotificationPanel() {
                   {damagedItems.length > 0 && (
                     <div className="px-4 py-3">
                       <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                          <AlertCircle className="w-4 h-4 text-yellow-600" />
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-950/40">
+                          <AlertCircle className="h-4 w-4 text-yellow-700 dark:text-yellow-300" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">

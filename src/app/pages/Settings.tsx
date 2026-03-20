@@ -698,22 +698,22 @@ export default function SettingsPage() {
 
                   return (
                     <div key={item.key} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4 transition-all duration-200 hover:border-slate-200 hover:bg-white hover:shadow-sm">
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-start gap-4">
-                          <div className="text-2xl leading-none">{item.icon}</div>
-                          <div>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                        <div className="flex min-w-0 items-start gap-4">
+                          <div className="shrink-0 text-2xl leading-none">{item.icon}</div>
+                          <div className="min-w-0">
                             <p className="text-sm font-semibold text-slate-800">{item.label}</p>
                             <p className="mt-1 text-xs leading-5 text-slate-500">{item.desc}</p>
                           </div>
                         </div>
                         <button
                           onClick={() => setNotifications((prev) => ({ ...prev, [item.key]: !prev[item.key as keyof typeof prev] }))}
-                          className={`relative h-7 w-14 shrink-0 rounded-full transition-all duration-300 ${
+                          className={`relative h-8 w-16 shrink-0 justify-self-start rounded-full transition-all duration-300 sm:justify-self-end ${
                             checked ? "bg-gradient-to-r from-[#B0BF00] to-[#9aaa00] shadow-lg shadow-[#B0BF00]/20" : "bg-gray-200"
                           }`}
                         >
                           <span
-                            className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-md transition-all duration-300 ${
+                            className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-md transition-all duration-300 ${
                               checked ? "translate-x-8" : "translate-x-1"
                             }`}
                           />
