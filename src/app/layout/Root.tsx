@@ -302,7 +302,7 @@ export default function Root() {
   const toggleTheme = () => setTheme(isDark ? "light" : "dark");
 
   return (
-    <div className="flex h-screen overflow-hidden relative bg-gradient-to-br from-gray-50 via-gray-100 to-[#B0BF00]/5 text-slate-900 dark:from-[#07111f] dark:via-[#0d1a2b] dark:to-[#07111f] dark:text-slate-100">
+      <div className="flex h-screen overflow-hidden relative bg-gradient-to-br from-gray-50 via-gray-100 to-[#B0BF00]/5 text-slate-900 dark:from-[#07111f] dark:via-[#0d1a2b] dark:to-[#07111f] dark:text-slate-100">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#B0BF00]/10 rounded-full blur-3xl animate-pulse dark:bg-[#8fa100]/8" />
@@ -314,7 +314,7 @@ export default function Root() {
       </div>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex lg:flex-col lg:w-56 bg-[#1a1d27]/95 backdrop-blur-xl flex-shrink-0 relative z-10 border-r border-white/5 dark:bg-[#0a1626]/95 dark:border-[#20324a]">
+      <aside className="hidden lg:flex lg:flex-col lg:w-56 bg-[#1a1d27]/95 backdrop-blur-xl flex-shrink-0 relative z-10 border-r border-white/5 dark:bg-[#081222]/95 dark:border-[#20324a]">
         <SidebarContent />
       </aside>
 
@@ -328,7 +328,7 @@ export default function Root() {
 
       {/* Mobile sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 w-56 bg-[#1a1d27]/95 backdrop-blur-xl flex flex-col z-50 transform transition-transform duration-200 ease-in-out lg:hidden border-r border-white/5 dark:bg-[#0a1626]/95 dark:border-[#20324a] ${
+        className={`fixed inset-y-0 left-0 w-56 bg-[#1a1d27]/95 backdrop-blur-xl flex flex-col z-50 transform transition-transform duration-200 ease-in-out lg:hidden border-r border-white/5 dark:bg-[#081222]/95 dark:border-[#20324a] ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -338,17 +338,17 @@ export default function Root() {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden relative z-10">
         {/* Header */}
-        <header className="h-14 bg-white/80 backdrop-blur-xl border-b border-[#B0BF00]/20 flex items-center px-3 md:px-4 lg:px-6 gap-2 md:gap-3 flex-shrink-0 shadow-[0_4px_20px_rgba(176,191,0,0.08)] dark:bg-[#0d1a2b]/85 dark:border-[#20324a] dark:shadow-[0_4px_20px_rgba(2,8,23,0.45)]">
+        <header className="h-14 bg-white/80 backdrop-blur-xl border-b border-[#B0BF00]/20 flex items-center px-3 md:px-4 lg:px-6 gap-2 md:gap-3 flex-shrink-0 shadow-[0_4px_20px_rgba(176,191,0,0.08)] dark:bg-[#0d1a2b]/90 dark:border-[#314865] dark:shadow-[0_4px_20px_rgba(2,8,23,0.45)]">
           {/* Mobile hamburger */}
           <button
-            className="lg:hidden text-gray-500 hover:text-gray-700 transition-colors"
+            className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-slate-300 dark:hover:text-white transition-colors"
             onClick={() => setIsSidebarOpen(true)}
           >
             <Menu className="w-5 h-5" />
           </button>
 
           {/* Desktop hamburger (cosmetic) */}
-          <button className="hidden lg:flex text-gray-400 hover:text-gray-600 transition-colors">
+          <button className="hidden lg:flex text-gray-400 hover:text-gray-600 dark:text-slate-400 dark:hover:text-white transition-colors">
             <Menu className="w-5 h-5" />
           </button>
 
@@ -366,7 +366,7 @@ export default function Root() {
 
           <button
             onClick={toggleTheme}
-            className="flex items-center gap-2 rounded-xl border border-[#B0BF00]/15 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-all duration-200 hover:border-[#B0BF00]/35 hover:bg-[#f7fad8] dark:border-[#20324a] dark:bg-[#132338] dark:text-slate-200 dark:hover:bg-[#1a2e45]"
+            className="flex items-center gap-2 rounded-xl border border-[#B0BF00]/15 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-all duration-200 hover:border-[#B0BF00]/35 hover:bg-[#f7fad8] dark:border-[#314865] dark:bg-[#132338] dark:text-slate-100 dark:hover:bg-[#1a2e45]"
             title={isDark ? "Switch to light mode" : "Switch to dark mode"}
           >
             {isDark ? <Sun className="h-4 w-4 text-[#B0BF00]" /> : <Moon className="h-4 w-4 text-[#B0BF00]" />}
@@ -402,7 +402,7 @@ export default function Root() {
             createPortal(
               <div
                 ref={profilePanelRef}
-                className="fixed w-72 bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border-2 border-gray-100 overflow-hidden z-[9999] dark:bg-[#0d1a2b] dark:border-[#20324a]"
+                className="fixed w-72 bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border-2 border-gray-100 overflow-hidden z-[9999] dark:bg-[#0d1a2b] dark:border-[#314865]"
                 style={{ top: `${profilePosition.top}px`, right: `${profilePosition.right}px` }}
               >
                 {/* Header with gradient */}
@@ -423,7 +423,7 @@ export default function Root() {
                 </div>
 
                 {/* Profile Details */}
-                <div className="p-4 space-y-3 border-b border-gray-100 dark:border-[#20324a]">
+                <div className="p-4 space-y-3 border-b border-gray-100 dark:border-[#314865]">
                   {/* Full Name */}
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 dark:bg-[#132338]">
@@ -472,13 +472,13 @@ export default function Root() {
                   <Link
                     to="/dashboard/settings"
                     onClick={() => setIsProfileOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200 group dark:text-slate-200 dark:hover:bg-[#132338]"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200 group dark:text-slate-100 dark:hover:bg-[#132338]"
                   >
                     <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-[#B0BF00]/10 transition-colors dark:bg-[#132338] dark:group-hover:bg-[#B0BF00]/10">
                       <Settings className="w-4 h-4 text-gray-600 group-hover:text-[#B0BF00] transition-colors" />
                     </div>
                     <span className="flex-1">Settings</span>
-                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#B0BF00] transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#B0BF00] transition-colors dark:text-slate-400" />
                   </Link>
                   
                   <button
@@ -501,7 +501,7 @@ export default function Root() {
           {/* Quick Logout Button */}
           <button
             onClick={handleLogout}
-            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-110 group"
+            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-110 group dark:text-slate-300 dark:hover:bg-red-950/40"
             title="Logout"
           >
             <LogOut className="w-5 h-5 group-hover:rotate-12 transition-transform" />

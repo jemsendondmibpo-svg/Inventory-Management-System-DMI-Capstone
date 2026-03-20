@@ -179,7 +179,7 @@ export function NotificationPanel() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="text-xs font-semibold text-yellow-700 uppercase tracking-wide">
-                              Damaged / Poor Condition
+                              Damaged Condition
                             </h4>
                             <span className="text-xs text-white bg-yellow-500 px-1.5 py-0.5 rounded-full font-bold">
                               {damagedItems.length}

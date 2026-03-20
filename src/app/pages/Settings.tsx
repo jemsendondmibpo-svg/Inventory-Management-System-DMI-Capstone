@@ -331,21 +331,21 @@ export default function SettingsPage() {
                       <Briefcase className="h-3.5 w-3.5 text-blue-500" />
                       Role
                     </label>
-                    <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                    <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 dark:border-[#314865] dark:bg-[#132338]">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                          <p className="text-sm font-semibold text-slate-800">{profile.role}</p>
-                          <p className="mt-1 text-xs text-slate-500">
+                          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{profile.role}</p>
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                             Your role is managed centrally for security and access control.
                           </p>
                         </div>
-                        <div className="inline-flex w-fit rounded-lg bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                        <div className="inline-flex w-fit rounded-lg bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-[#1f3650] dark:text-slate-100">
                           System Managed
                         </div>
                       </div>
-                      <div className="mt-3 flex items-start gap-2 rounded-xl border border-blue-100 bg-white/70 p-3">
-                        <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
-                        <p className="text-xs leading-5 text-blue-700">
+                      <div className="mt-3 flex items-start gap-2 rounded-xl border border-blue-100 bg-white/70 p-3 dark:border-[#314865] dark:bg-[#0d1a2b]">
+                        <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-500 dark:text-[#d7e25f]" />
+                        <p className="text-xs leading-5 text-blue-700 dark:text-slate-200">
                           Role changes must be handled by the administrator through User Management.
                         </p>
                       </div>

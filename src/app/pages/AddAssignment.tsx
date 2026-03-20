@@ -24,7 +24,7 @@ import { useInventory } from "../context/InventoryContext";
 
 const WORKSTATION_OPTIONS: Record<string, string[]> = {
   "IT Department": ["PROD 1", "PROD 2", "IT Room", "Conference Room", "Front Desk"],
-  "HR Department": ["Front Desk", "Conference Room", "HR Room", "Production Area"],
+  "HR Department": ["Front Desk", "Conference Room", "HR Room", "Production Area", "IT Room"],
 };
 
 const FLOOR_MAPPING: Record<string, string> = {
