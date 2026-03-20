@@ -564,7 +564,14 @@ export default function Inventory() {
                         </span>
                         <div className="flex items-center gap-1 mt-0.5">
                           <MapPin className="w-3 h-3 text-indigo-500" />
-                          <span className="text-[11px] text-indigo-600">
+                          <span
+                            className={`text-[11px] ${
+                              (asset.location === "HR Department" && asset.locationCode === "MMS") ||
+                              (asset.location === "IT Department" && asset.locationCode === "JMS")
+                                ? "text-white"
+                                : "text-indigo-600"
+                            }`}
+                          >
                             {asset.location} ({asset.locationCode})
                           </span>
                         </div>

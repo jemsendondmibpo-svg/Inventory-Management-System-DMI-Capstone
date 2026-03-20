@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useAuth, UserRole, LoginFailureReason } from "../context/AuthContext";
 import { supabase } from "../../lib/supabase";
 import { Mail, Lock, ArrowRight, Shield, Zap, CheckCircle2, Users, UserCog, Briefcase } from "lucide-react";
+import { useTheme } from "next-themes";
 
 const LOGO_BASE64 =
   "https://media.designrush.com/agencies/293509/Digital-Minds.png";
@@ -14,6 +15,7 @@ const LOGO_BASE64 =
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { setTheme } = useTheme();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -21,6 +23,10 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+
+  useEffect(() => {
+    setTheme("light");
+  }, [setTheme]);
 
   const getLoginMessage = (reason: LoginFailureReason) => {
     switch (reason) {
@@ -355,4 +361,6 @@ export default function Login() {
     </div>
   );
 }
+
+
 

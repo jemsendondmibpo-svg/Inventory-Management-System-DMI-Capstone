@@ -412,7 +412,7 @@ export default function Reports() {
     
     const colors: Record<string, string> = {
       "Excellent": "#B0BF00",
-      "Good": "#1a1d27",
+      "Good": isDark ? "#5b8def" : "#1a1d27",
       "Fair": "#94a3b8",
       "Poor": "#ef4444",
       "Damaged": "#dc2626",
