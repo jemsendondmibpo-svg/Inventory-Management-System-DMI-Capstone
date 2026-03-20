@@ -150,7 +150,8 @@ export default function AddAssignment() {
     "h-11 rounded-xl border border-slate-200 bg-white text-sm shadow-sm";
 
   const workstationOptions = selectedAsset ? WORKSTATION_OPTIONS[selectedAsset.location] || [] : [];
-  const isITDept = selectedAsset?.location === "IT Department";
+  const showSeatNumberField = Boolean(selectedAsset && formData.workstation);
+  const isHRDept = selectedAsset?.location === "HR Department";
 
   return (
     <div className="max-w-5xl space-y-5">
@@ -289,12 +290,14 @@ export default function AddAssignment() {
                 </p>
               </div>
 
-              {isITDept && formData.workstation && (
+              {showSeatNumberField && (
                 <div className="space-y-1.5 rounded-3xl border border-slate-200 bg-slate-50/70 p-5">
-                  <Label className="text-xs font-medium text-slate-600">Seat Number / PC Number</Label>
+                  <Label className="text-xs font-medium text-slate-600">
+                    {isHRDept ? "Seat Number" : "Seat Number / PC Number"}
+                  </Label>
                   <Input
                     type="text"
-                    placeholder="e.g., 1, 25, PC-101"
+                    placeholder={isHRDept ? "e.g., 1, 25, 42" : "e.g., 1, 25, PC-101"}
                     value={formData.seatNumber}
                     onChange={(e) => setFormData({ ...formData, seatNumber: e.target.value })}
                     className={fieldClass}

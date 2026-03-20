@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   User,
   Bell,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
+import { supabase } from "../../lib/supabase";
 
 const sections = [
   {
@@ -52,7 +53,7 @@ const sections = [
 type SectionId = (typeof sections)[number]["id"];
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [activeSection, setActiveSection] = useState<SectionId>("personal");
   const [profile, setProfile] = useState({
     name: user?.name || "Jeremy Sendon",
@@ -86,11 +87,192 @@ export default function SettingsPage() {
     emailAlerts: true,
   });
   const [saved, setSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
-    toast.success("Settings saved successfully.");
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const loadSettings = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      const [profileResult, companyResult, notificationResult] = await Promise.all([
+        supabase
+          .from("users")
+          .select("full_name, email, phone, department, position, date_joined, role")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("company_profile")
+          .select("*")
+          .eq("id", 1)
+          .maybeSingle(),
+        supabase
+          .from("notification_preferences")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+      ]);
+
+      if (profileResult.data) {
+        setProfile({
+          name: profileResult.data.full_name ?? "",
+          email: profileResult.data.email ?? "",
+          phone: profileResult.data.phone ?? "",
+          role: profileResult.data.role ?? "User",
+          department: profileResult.data.department ?? "",
+          position: profileResult.data.position ?? "",
+          dateJoined: profileResult.data.date_joined ?? "",
+        });
+      } else if (user) {
+        setProfile({
+          name: user.name ?? "",
+          email: user.email ?? "",
+          phone: "",
+          role: user.role ?? "User",
+          department: "",
+          position: "",
+          dateJoined: "",
+        });
+      }
+
+      if (companyResult.data) {
+        setCompanyInfo({
+          companyName: companyResult.data.company_name ?? "",
+          businessType: companyResult.data.business_type ?? "",
+          industry: companyResult.data.industry ?? "",
+          registrationNumber: companyResult.data.registration_number ?? "",
+          taxId: companyResult.data.tax_id ?? "",
+          email: companyResult.data.email ?? "",
+          phone: companyResult.data.phone ?? "",
+          website: companyResult.data.website ?? "",
+          address: companyResult.data.address ?? "",
+          city: companyResult.data.city ?? "",
+          province: companyResult.data.province ?? "",
+          postalCode: companyResult.data.postal_code ?? "",
+          country: companyResult.data.country ?? "",
+        });
+      }
+
+      if (notificationResult.data) {
+        setNotifications({
+          lowStock: Boolean(notificationResult.data.low_stock),
+          outOfStock: Boolean(notificationResult.data.out_of_stock),
+          newItem: Boolean(notificationResult.data.new_item),
+          weeklyReport: Boolean(notificationResult.data.weekly_report),
+          emailAlerts: Boolean(notificationResult.data.email_alerts),
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load settings:", error);
+    }
+  }, [user?.id, user?.email, user?.name, user?.role]);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  const handleSave = async () => {
+    if (!user?.id) {
+      toast.error("Please sign in again to save your settings.");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+
+      const { data: authData, error: authUserError } = await supabase.auth.getUser();
+      const authUserId = authData.user?.id;
+
+      if (authUserError || !authUserId) {
+        throw authUserError || new Error("Unable to resolve the current auth user.");
+      }
+
+      if (activeSection === "personal") {
+        const { error: profileError } = await supabase.from("users").upsert(
+          {
+            user_id: user.id,
+            auth_id: authUserId,
+            full_name: profile.name,
+            email: profile.email,
+            phone: profile.phone,
+            department: profile.department,
+            position: profile.position,
+            date_joined: profile.dateJoined,
+            role: profile.role,
+          },
+          {
+            onConflict: "auth_id",
+          }
+        );
+
+        if (profileError) throw profileError;
+
+        const { error: authError } = await supabase.auth.updateUser({
+          email: profile.email,
+        });
+
+        if (authError) {
+          console.warn("Auth email update warning:", authError.message);
+        }
+
+        await refreshUser();
+        await loadSettings();
+        toast.success("Personal information saved successfully.");
+      } else if (activeSection === "company") {
+        const { error: companyError } = await supabase.from("company_profile").upsert(
+          {
+            id: 1,
+            company_name: companyInfo.companyName,
+            business_type: companyInfo.businessType,
+            industry: companyInfo.industry,
+            registration_number: companyInfo.registrationNumber,
+            tax_id: companyInfo.taxId,
+            email: companyInfo.email,
+            phone: companyInfo.phone,
+            website: companyInfo.website,
+            address: companyInfo.address,
+            city: companyInfo.city,
+            province: companyInfo.province,
+            postal_code: companyInfo.postalCode,
+            country: companyInfo.country,
+          },
+          {
+            onConflict: "id",
+          }
+        );
+
+        if (companyError) throw companyError;
+        await loadSettings();
+        toast.success("Company information saved successfully.");
+      } else if (activeSection === "notifications") {
+        const { error: notificationError } = await supabase
+          .from("notification_preferences")
+          .upsert(
+            {
+              user_id: user.id,
+              low_stock: notifications.lowStock,
+              out_of_stock: notifications.outOfStock,
+              new_item: notifications.newItem,
+              weekly_report: notifications.weeklyReport,
+              email_alerts: notifications.emailAlerts,
+            },
+            {
+              onConflict: "user_id",
+            }
+          );
+
+        if (notificationError) throw notificationError;
+        await loadSettings();
+        toast.success("Notification preferences saved successfully.");
+      }
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error) {
+      console.error("Failed to save settings:", error);
+      const message = error instanceof Error ? error.message : "Unable to save settings. Please try again.";
+      toast.error(message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const activeSectionData =
@@ -136,9 +318,15 @@ export default function SettingsPage() {
       </p>
       <button
         onClick={handleSave}
+        disabled={isSaving}
         className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#B0BF00] to-[#9aaa00] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#B0BF00]/25 transition-all duration-300 hover:from-[#9aaa00] hover:to-[#8a9600] hover:shadow-xl hover:shadow-[#B0BF00]/35 sm:w-auto"
       >
-        {saved ? (
+        {isSaving ? (
+          <>
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            <span>Saving...</span>
+          </>
+        ) : saved ? (
           <>
             <Check className="h-4 w-4" />
             <span>Saved Successfully</span>
