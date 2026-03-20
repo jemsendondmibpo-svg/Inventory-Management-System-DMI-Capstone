@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth, UserRole } from "../context/AuthContext";
 import { supabase } from "../../lib/supabase";
+import { useTheme } from "next-themes";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -51,9 +52,12 @@ interface SystemUser {
 
 export default function UserManagement() {
   const { user, refreshUser } = useAuth();
+  const { resolvedTheme } = useTheme();
   const [users, setUsers] = useState<SystemUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"all" | UserRole>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "blocked">("all");
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<SystemUser | null>(null);
   const [viewTarget, setViewTarget] = useState<SystemUser | null>(null);
@@ -68,6 +72,7 @@ export default function UserManagement() {
     fullName: "",
     role: "" as UserRole | "",
   });
+  const isDark = resolvedTheme === "dark";
 
   // Fetch users
   useEffect(() => {
@@ -328,9 +333,15 @@ export default function UserManagement() {
   // Filter and paginate
   const filtered = users.filter(
     (u) =>
-      u.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.role.toLowerCase().includes(searchQuery.toLowerCase())
+      (
+        u.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        u.role.toLowerCase().includes(searchQuery.toLowerCase())
+      ) &&
+      (roleFilter === "all" || u.role === roleFilter) &&
+      (statusFilter === "all" ||
+        (statusFilter === "active" && !u.is_blocked) ||
+        (statusFilter === "blocked" && u.is_blocked))
   );
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -345,6 +356,21 @@ export default function UserManagement() {
     "overflow-hidden rounded-[28px] border border-[#B0BF00]/15 bg-white/90 shadow-[0_24px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 hover:shadow-[0_26px_70px_rgba(15,23,42,0.12)]";
   const labelChipClass =
     "inline-flex items-center gap-2 rounded-full border border-[#B0BF00]/20 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7f8f00]";
+  const headerSurfaceClass = isDark
+    ? "border-b border-[#314865] bg-gradient-to-r from-[#0d1a2b] via-[#132338] to-[#0d1a2b]"
+    : "border-b border-slate-100 bg-gradient-to-r from-[#f7fad8] via-white to-[#eef3c2]";
+  const statCardClass = isDark
+    ? "overflow-hidden rounded-[24px] border border-[#314865] bg-[#0d1a2b] p-5 shadow-[0_16px_40px_rgba(2,8,23,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_48px_rgba(2,8,23,0.45)]"
+    : "overflow-hidden rounded-[24px] border border-[#B0BF00]/15 bg-white/90 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.07)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_48px_rgba(15,23,42,0.12)]";
+  const panelClass = isDark
+    ? "overflow-hidden rounded-[28px] border border-[#314865] bg-[#0d1a2b] shadow-[0_24px_60px_rgba(2,8,23,0.45)] backdrop-blur-xl transition-all duration-300 hover:shadow-[0_26px_70px_rgba(2,8,23,0.52)]"
+    : sectionCardClass;
+  const tableHeadClass = isDark
+    ? "border-b border-[#314865] bg-[#132338]"
+    : "border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100/70";
+  const rowClass = isDark
+    ? "group transition-all duration-200 hover:bg-[#132338]"
+    : "group transition-all duration-200 hover:bg-slate-50/70";
 
   if (loading) {
     return (
@@ -369,7 +395,7 @@ export default function UserManagement() {
     <div className="space-y-6 md:space-y-7">
       {/* Header */}
       <div className={sectionCardClass}>
-        <div className="relative overflow-hidden px-6 py-6 sm:px-8 sm:py-7">
+        <div className={`relative overflow-hidden px-6 py-6 sm:px-8 sm:py-7 ${headerSurfaceClass}`}>
           <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#B0BF00] via-[#d6df63] to-[#8a9600]" />
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4">
@@ -409,8 +435,8 @@ export default function UserManagement() {
           return (
             <div
               key={index}
-              className="overflow-hidden rounded-[24px] border border-[#B0BF00]/15 bg-white/90 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.07)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_48px_rgba(15,23,42,0.12)]"
-            >
+            className={statCardClass}
+          >
               <div className="mb-4 h-1.5 rounded-full bg-gradient-to-r from-[#B0BF00] to-[#8a9600]" />
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -431,7 +457,7 @@ export default function UserManagement() {
       {/* Search and Filters */}
       <div className={sectionCardClass}>
         <div className="p-5 sm:p-6">
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400" />
             <Input
@@ -445,6 +471,27 @@ export default function UserManagement() {
             />
           </div>
           <div className="flex flex-wrap gap-2 sm:flex-nowrap">
+            <Select value={roleFilter} onValueChange={(value) => { setRoleFilter(value as typeof roleFilter); setCurrentPage(1); }}>
+              <SelectTrigger className="h-11 rounded-xl border-2 border-slate-200 bg-white px-4 font-medium text-slate-700 shadow-sm transition-all hover:border-[#B0BF00]">
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="Admin">Admin</SelectItem>
+                <SelectItem value="IT Officers">IT Officers</SelectItem>
+                <SelectItem value="HR Officers">HR Officers</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value as typeof statusFilter); setCurrentPage(1); }}>
+              <SelectTrigger className="h-11 rounded-xl border-2 border-slate-200 bg-white px-4 font-medium text-slate-700 shadow-sm transition-all hover:border-[#B0BF00]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="blocked">Blocked</SelectItem>
+              </SelectContent>
+            </Select>
             <Button
               variant="outline"
               className="h-11 rounded-xl border-2 border-slate-200 px-4 font-medium text-slate-700 transition-all hover:border-[#B0BF00] hover:bg-slate-50 hover:text-[#7f8f00]"
@@ -465,10 +512,10 @@ export default function UserManagement() {
       </div>
 
       {/* Users Table */}
-      <div className={sectionCardClass}>
+      <div className={panelClass}>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gradient-to-r from-slate-50 to-slate-100/70 border-b border-slate-200">
+            <thead className={tableHeadClass}>
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.18em] text-slate-600">
                   Name
@@ -507,7 +554,7 @@ export default function UserManagement() {
                 paginated.map((systemUser) => {
                   const RoleIcon = getRoleIcon(systemUser.role);
                   return (
-                    <tr key={systemUser.user_id} className="group transition-all duration-200 hover:bg-slate-50/70">
+                    <tr key={systemUser.user_id} className={rowClass}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#B0BF00] to-[#8a9600] text-sm font-bold text-white">
@@ -641,7 +688,7 @@ export default function UserManagement() {
           }
         }}
       >
-        <DialogContent className="sm:max-w-lg rounded-[24px] border border-[#B0BF00]/15 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.16)]">
+        <DialogContent className="sm:max-w-lg rounded-[24px] border border-[#B0BF00]/15 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.16)] dark:bg-[#0d1a2b] dark:border-[#314865]">
           <DialogHeader>
             <DialogTitle>{editTarget ? "Edit User" : "Add New User"}</DialogTitle>
             <DialogDescription>
@@ -751,7 +798,7 @@ export default function UserManagement() {
 
       {/* View User Modal */}
       <Dialog open={!!viewTarget} onOpenChange={(open) => !open && setViewTarget(null)}>
-          <DialogContent className="sm:max-w-md rounded-[24px] border border-[#B0BF00]/15 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.16)]">
+          <DialogContent className="sm:max-w-md rounded-[24px] border border-[#B0BF00]/15 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.16)] dark:bg-[#0d1a2b] dark:border-[#314865]">
           <DialogHeader>
             <DialogTitle>User Details</DialogTitle>
             <DialogDescription>
@@ -825,7 +872,7 @@ export default function UserManagement() {
 
       {/* Block Confirmation */}
       <Dialog open={!!blockTarget} onOpenChange={(open) => !open && setBlockTarget(null)}>
-          <DialogContent className="sm:max-w-sm rounded-[24px] border border-[#B0BF00]/15 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.16)]">
+          <DialogContent className="sm:max-w-sm rounded-[24px] border border-[#B0BF00]/15 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.16)] dark:bg-[#0d1a2b] dark:border-[#314865]">
           <DialogHeader>
             <DialogTitle>
               {blockTarget?.is_blocked ? "Unblock User" : "Block User"}
@@ -871,7 +918,7 @@ export default function UserManagement() {
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-          <DialogContent className="sm:max-w-sm rounded-[24px] border border-[#B0BF00]/15 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.16)]">
+          <DialogContent className="sm:max-w-sm rounded-[24px] border border-[#B0BF00]/15 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.16)] dark:bg-[#0d1a2b] dark:border-[#314865]">
           <DialogHeader>
             <DialogTitle>Delete User</DialogTitle>
             <DialogDescription>

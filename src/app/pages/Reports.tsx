@@ -21,7 +21,8 @@ const COLORS = ["#B0BF00", "#1a1d27", "#94a3b8", "#64748b", "#C5D300", "#8BA000"
 const CARD = "overflow-hidden rounded-[28px] border border-[#B0BF00]/15 bg-white/90 shadow-[0_24px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 hover:shadow-[0_26px_70px_rgba(15,23,42,0.12)]";
 
 export default function Reports() {
-  const [period, setPeriod] = useState("6months");
+  const [reportStartDate, setReportStartDate] = useState("");
+  const [reportEndDate, setReportEndDate] = useState("");
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [showFormatDialog, setShowFormatDialog] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
@@ -51,7 +52,30 @@ export default function Reports() {
   const chartTitleClass = isDark ? "text-slate-100" : "text-gray-800";
   const chartIconClass = isDark ? "text-slate-300 hover:text-slate-100" : "text-gray-400 hover:text-gray-600";
 
+  const reportInventory = inventory.filter((item) => {
+    if (!reportStartDate && !reportEndDate) return true;
+    if (!item.purchaseDate) return false;
+
+    const purchaseDate = new Date(item.purchaseDate);
+    purchaseDate.setHours(0, 0, 0, 0);
+
+    const start = reportStartDate ? new Date(reportStartDate) : null;
+    const end = reportEndDate ? new Date(reportEndDate) : null;
+
+    if (start) start.setHours(0, 0, 0, 0);
+    if (end) end.setHours(23, 59, 59, 999);
+
+    if (start && purchaseDate < start) return false;
+    if (end && purchaseDate > end) return false;
+    return true;
+  });
+
   const handleExport = (type: string) => {
+    if (type === "Full") {
+      handleExportCSV();
+      return;
+    }
+
     toast.success(`${type} report exported successfully.`);
   };
 
@@ -203,7 +227,7 @@ export default function Reports() {
     }
     
     // === MONTHLY ACQUISITION TREND ===
-    csvRows.push("MONTHLY ACQUISITION TREND (Last 6 Months)");
+    csvRows.push("MONTHLY ACQUISITION TREND (Selected Date Range)");
     csvRows.push("─────────────────────────────────────────────────────────────────────────────────────────────────────────");
     csvRows.push(""); // Separator
     csvRows.push("Month,Assets Acquired,Assets Retired,Net Change");
@@ -261,10 +285,10 @@ export default function Reports() {
   }
 
   // Calculate real stats from database
-  const totalAssets = inventory.reduce((sum, item) => sum + item.quantity, 0);
-  const totalInStock = inventory.filter(i => i.stockStatus === "In Stock").reduce((sum, item) => sum + item.quantity, 0);
-  const totalLowStock = inventory.filter(i => i.stockStatus === "Low Stock").reduce((sum, item) => sum + item.quantity, 0);
-  const totalOutOfStock = inventory.filter(i => i.stockStatus === "Out of Stock").reduce((sum, item) => sum + item.quantity, 0);
+  const totalAssets = reportInventory.reduce((sum, item) => sum + item.quantity, 0);
+  const totalInStock = reportInventory.filter(i => i.stockStatus === "In Stock").reduce((sum, item) => sum + item.quantity, 0);
+  const totalLowStock = reportInventory.filter(i => i.stockStatus === "Low Stock").reduce((sum, item) => sum + item.quantity, 0);
+  const totalOutOfStock = reportInventory.filter(i => i.stockStatus === "Out of Stock").reduce((sum, item) => sum + item.quantity, 0);
   const totalUnderMaintenance = assignments.filter(a => a.status === "Under Maintenance").length;
   const totalInventoryValue = inventory.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
@@ -277,7 +301,7 @@ export default function Reports() {
       icon: Package,
       iconBg: "bg-blue-50",
       iconColor: "text-blue-500",
-      trend: `${inventory.length} unique items`,
+      trend: `${reportInventory.length} unique items`,
       up: true,
     },
     {
@@ -351,7 +375,7 @@ export default function Reports() {
   const stockByType = (() => {
     const categories = ["System Unit", "Monitor", "Keyboard", "Mouse", "Headset", "Webcam", "Extra"];
     return categories.map(cat => {
-      const items = inventory.filter(i => i.category === cat);
+      const items = reportInventory.filter(i => i.category === cat);
       return {
         name: cat,
         inStock: items.filter(i => i.stockStatus === "In Stock").reduce((s, i) => s + i.quantity, 0),
@@ -362,33 +386,31 @@ export default function Reports() {
     }).filter(cat => cat.total > 0); // Only show categories with items
   })();
 
-  // Monthly acquisition from purchase dates
+  // Monthly acquisition from the selected date range
   const monthlyAcquisition = (() => {
-    const months = ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
-    const now = new Date();
-    const monthlyCounts: Record<string, { acquired: number; retired: number }> = {};
-    
-    months.forEach(m => monthlyCounts[m] = { acquired: 0, retired: 0 });
-    
-    inventory.forEach(item => {
-      if (item.purchaseDate) {
-        const purchaseDate = new Date(item.purchaseDate);
-        const monthDiff = (now.getFullYear() - purchaseDate.getFullYear()) * 12 + (now.getMonth() - purchaseDate.getMonth());
-        
-        if (monthDiff >= 0 && monthDiff < 6) {
-          const monthName = months[5 - monthDiff];
-          if (monthName) {
-            monthlyCounts[monthName].acquired += item.quantity;
-          }
-        }
-      }
+    const monthlyCounts = new Map<string, { acquired: number; retired: number }>();
+
+    reportInventory.forEach((item) => {
+      if (!item.purchaseDate) return;
+
+      const purchaseDate = new Date(item.purchaseDate);
+      const monthKey = purchaseDate.toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+      });
+
+      const current = monthlyCounts.get(monthKey) || { acquired: 0, retired: 0 };
+      current.acquired += item.quantity;
+      monthlyCounts.set(monthKey, current);
     });
-    
-    return months.map(month => ({
-      month,
-      acquired: monthlyCounts[month].acquired,
-      retired: monthlyCounts[month].retired, // No retirement data in current schema
-    }));
+
+    return Array.from(monthlyCounts.entries())
+      .map(([month, value]) => ({
+        month,
+        acquired: value.acquired,
+        retired: value.retired,
+      }))
+      .sort((a, b) => new Date(`1 ${a.month}`).getTime() - new Date(`1 ${b.month}`).getTime());
   })();
 
   // Condition data with real data
@@ -431,7 +453,7 @@ export default function Reports() {
   const inventoryValueByCategory = (() => {
     const categories = ["System Unit", "Monitor", "Keyboard", "Mouse", "Headset", "Webcam", "Extra"];
     const categoryValues = categories.map(cat => {
-      const items = inventory.filter(i => i.category === cat);
+      const items = reportInventory.filter(i => i.category === cat);
       const value = items.reduce((s, i) => s + (i.price * i.quantity), 0);
       return { name: cat, value };
     }).filter(cat => cat.value > 0);
@@ -445,7 +467,7 @@ export default function Reports() {
   })();
 
   // Top assets by value with real data
-  const topAssets = inventory
+  const topAssets = reportInventory
     .map(item => ({
       name: item.assetName,
       sku: item.sku,
@@ -461,7 +483,7 @@ export default function Reports() {
     .slice(0, 8);
 
   // Low stock alerts with real data
-  const lowStockAlerts = inventory
+  const lowStockAlerts = reportInventory
     .filter(item => item.stockStatus === "Low Stock" || item.stockStatus === "Out of Stock")
     .map(item => ({
       name: item.assetName,
@@ -550,15 +572,26 @@ export default function Reports() {
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                <select
-                  value={period}
-                  onChange={(e) => setPeriod(e.target.value)}
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 outline-none shadow-sm focus:border-[#B0BF00]"
-                >
-                  <option value="3months">Last 3 Months</option>
-                  <option value="6months">Last 6 Months</option>
-                  <option value="year">This Year</option>
-                </select>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-slate-500">Start Date:</span>
+                    <input
+                      type="date"
+                      value={reportStartDate}
+                      onChange={(e) => setReportStartDate(e.target.value)}
+                      className="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none shadow-sm focus:border-[#B0BF00]"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-slate-500">End Date:</span>
+                    <input
+                      type="date"
+                      value={reportEndDate}
+                      onChange={(e) => setReportEndDate(e.target.value)}
+                      className="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none shadow-sm focus:border-[#B0BF00]"
+                    />
+                  </div>
+                </div>
                 <button
                   onClick={() => setShowFormatDialog(true)}
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#B0BF00] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(176,191,0,0.28)] transition-colors hover:bg-[#9aaa00]"

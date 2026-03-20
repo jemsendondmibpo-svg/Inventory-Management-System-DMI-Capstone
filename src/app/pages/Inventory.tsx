@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTheme } from "next-themes";
 import {
   Edit,
   Trash2,
@@ -83,6 +84,7 @@ function generateSKU(assetType: string, brand: string, id: number): string {
 
 export default function Inventory() {
   const { user } = useAuth();
+  const { resolvedTheme } = useTheme();
   const { inventory, addAsset, updateAsset, deleteAsset, loading } = useInventory();
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -90,11 +92,14 @@ export default function Inventory() {
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStockStatus, setFilterStockStatus] = useState("all");
   const [filterAssetStatus, setFilterAssetStatus] = useState("all");
+  const [filterStartDate, setFilterStartDate] = useState("");
+  const [filterEndDate, setFilterEndDate] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<InventoryAsset | null>(null);
   const [viewTarget, setViewTarget] = useState<InventoryAsset | null>(null);
   const [editTarget, setEditTarget] = useState<InventoryAsset | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const canEditInventory = user ? canManageInventory(user.role) : false;
+  const isDark = resolvedTheme === "dark";
 
   // Form state
   const [formData, setFormData] = useState({
@@ -139,8 +144,23 @@ export default function Inventory() {
     const catOk = filterCategory === "all" || asset.category === filterCategory;
     const stockStatusOk = filterStockStatus === "all" || asset.stockStatus === filterStockStatus;
     const assetStatusOk = filterAssetStatus === "all" || asset.assetStatus === filterAssetStatus;
+    const purchaseDateValue = asset.purchaseDate ? new Date(asset.purchaseDate) : null;
+    const startDateValue = filterStartDate ? new Date(filterStartDate) : null;
+    const endDateValue = filterEndDate ? new Date(filterEndDate) : null;
+    if (purchaseDateValue) {
+      purchaseDateValue.setHours(0, 0, 0, 0);
+    }
+    if (startDateValue) {
+      startDateValue.setHours(0, 0, 0, 0);
+    }
+    if (endDateValue) {
+      endDateValue.setHours(23, 59, 59, 999);
+    }
+    const dateOk =
+      (!startDateValue || !purchaseDateValue || purchaseDateValue >= startDateValue) &&
+      (!endDateValue || !purchaseDateValue || purchaseDateValue <= endDateValue);
     
-    return matchSearch && catOk && stockStatusOk && assetStatusOk;
+    return matchSearch && catOk && stockStatusOk && assetStatusOk && dateOk;
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
@@ -440,10 +460,10 @@ export default function Inventory() {
             >
               <Filter className="h-4 w-4" />
               Filter
-              {(filterCategory !== "all" || filterStockStatus !== "all" || filterAssetStatus !== "all") && (
-                <span className="ml-1 h-2 w-2 rounded-full bg-[#B0BF00]" />
-              )}
-            </button>
+                {(filterCategory !== "all" || filterStockStatus !== "all" || filterAssetStatus !== "all" || filterStartDate || filterEndDate) && (
+                  <span className="ml-1 h-2 w-2 rounded-full bg-[#B0BF00]" />
+                )}
+              </button>
 
             {/* Add Asset Button */}
             {canEditInventory && (
@@ -501,9 +521,27 @@ export default function Inventory() {
                 <option value="Under Maintenance">Under Maintenance</option>
               </select>
             </div>
-            {(filterCategory !== "all" || filterStockStatus !== "all" || filterAssetStatus !== "all") && (
-              <button
-                onClick={() => { setFilterCategory("all"); setFilterStockStatus("all"); setFilterAssetStatus("all"); setCurrentPage(1); }}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-slate-500">Start Date:</span>
+              <Input
+                type="date"
+                value={filterStartDate}
+                onChange={(e) => { setFilterStartDate(e.target.value); setCurrentPage(1); }}
+                className="h-10 w-40 rounded-xl border border-slate-200 bg-white text-xs text-slate-700 outline-none focus:border-[#B0BF00]"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-slate-500">End Date:</span>
+              <Input
+                type="date"
+                value={filterEndDate}
+                onChange={(e) => { setFilterEndDate(e.target.value); setCurrentPage(1); }}
+                className="h-10 w-40 rounded-xl border border-slate-200 bg-white text-xs text-slate-700 outline-none focus:border-[#B0BF00]"
+              />
+            </div>
+            {(filterCategory !== "all" || filterStockStatus !== "all" || filterAssetStatus !== "all" || filterStartDate || filterEndDate) && (
+                <button
+                onClick={() => { setFilterCategory("all"); setFilterStockStatus("all"); setFilterAssetStatus("all"); setFilterStartDate(""); setFilterEndDate(""); setCurrentPage(1); }}
                 className="text-xs font-medium text-[#8fa100] hover:underline"
               >
                 Clear filters
@@ -568,7 +606,9 @@ export default function Inventory() {
                             className={`text-[11px] ${
                               (asset.location === "HR Department" && asset.locationCode === "MMS") ||
                               (asset.location === "IT Department" && asset.locationCode === "JMS")
-                                ? "text-white"
+                                ? isDark
+                                  ? "text-white"
+                                  : "text-slate-800"
                                 : "text-indigo-600"
                             }`}
                           >
