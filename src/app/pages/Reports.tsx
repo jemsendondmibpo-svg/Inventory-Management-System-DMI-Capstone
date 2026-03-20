@@ -3,6 +3,7 @@ import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Legend,
 } from "recharts";
+import { useTheme } from "next-themes";
 import { Download, TrendingUp, TrendingDown, Package, AlertTriangle, CheckCircle, Clock, Printer, FileText, File, LayoutDashboard } from "lucide-react";
 import { toast } from "sonner";
 import { useInventory } from "../context/InventoryContext";
@@ -24,8 +25,31 @@ export default function Reports() {
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [showFormatDialog, setShowFormatDialog] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
+  const { resolvedTheme } = useTheme();
   const { inventory, loading: inventoryLoading } = useInventory();
   const { assignments, loading: assignmentsLoading } = useAssignments();
+  const isDark = resolvedTheme === "dark";
+  const chartGrid = isDark ? "#314865" : "#f1f5f9";
+  const chartAxis = isDark ? "#f5f9ff" : "#94a3b8";
+  const chartTooltip = isDark
+    ? {
+        backgroundColor: "#0d1a2b",
+        border: "1px solid #314865",
+        borderRadius: "10px",
+        color: "#f5f9ff",
+        fontSize: "11px",
+      }
+    : {
+        backgroundColor: "#fff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "8px",
+        fontSize: "11px",
+      };
+  const chartLegend = isDark
+    ? { fontSize: "10px", color: "#f5f9ff" }
+    : { fontSize: "10px" };
+  const chartTitleClass = isDark ? "text-slate-100" : "text-gray-800";
+  const chartIconClass = isDark ? "text-slate-300 hover:text-slate-100" : "text-gray-400 hover:text-gray-600";
 
   const handleExport = (type: string) => {
     toast.success(`${type} report exported successfully.`);
@@ -579,23 +603,23 @@ export default function Reports() {
           {/* Stock by Category */}
           <div className={`${CARD} p-5`}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-gray-800">Stock by Asset Type</h3>
-              <button onClick={() => handleExport("Stock by Type")} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+              <h3 className={`text-sm font-semibold ${chartTitleClass}`}>Stock by Asset Type</h3>
+              <button onClick={() => handleExport("Stock by Type")} className={`rounded p-1 ${chartIconClass}`}>
                 <Download className="w-3.5 h-3.5" />
               </button>
             </div>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={stockByType} barSize={14} barCategoryGap="30%">
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 9, fill: "#94a3b8" }} axisLine={false} tickLine={false} angle={-15} textAnchor="end" height={50} />
-                <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 9, fill: chartAxis }} axisLine={false} tickLine={false} angle={-15} textAnchor="end" height={50} />
+                <YAxis tick={{ fontSize: 10, fill: chartAxis }} axisLine={false} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px", fontSize: "11px" }}
+                  contentStyle={chartTooltip}
                 />
-                <Legend wrapperStyle={{ fontSize: "10px", paddingTop: "8px" }} />
-                <Bar dataKey="inStock" fill="#B0BF00" name="In Stock" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="lowStock" fill="#f97316" name="Low Stock" radius={[3, 3, 0, 0]} />
-                <Bar dataKey="outOfStock" fill="#ef4444" name="Out of Stock" radius={[3, 3, 0, 0]} />
+                <Legend wrapperStyle={{ ...chartLegend, paddingTop: "8px" }} />
+                <Bar dataKey="inStock" fill={isDark ? "#d7e25f" : "#B0BF00"} name="In Stock" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="lowStock" fill={isDark ? "#fbbf24" : "#f97316"} name="Low Stock" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="outOfStock" fill={isDark ? "#f87171" : "#ef4444"} name="Out of Stock" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -603,8 +627,8 @@ export default function Reports() {
           {/* Asset Condition Distribution */}
           <div className={`${CARD} p-5`}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-gray-800">Asset Condition</h3>
-              <button onClick={() => handleExport("Condition")} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+              <h3 className={`text-sm font-semibold ${chartTitleClass}`}>Asset Condition</h3>
+              <button onClick={() => handleExport("Condition")} className={`rounded p-1 ${chartIconClass}`}>
                 <Download className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -616,14 +640,14 @@ export default function Reports() {
                       <Cell key={`condition-cell-${entry.name}-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px", fontSize: "11px" }} />
+                  <Tooltip contentStyle={chartTooltip} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="grid grid-cols-3 gap-x-4 gap-y-1.5 w-full mt-2">
                 {conditionData.map((d, i) => (
                   <div key={i} className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
-                    <span className="text-[10px] text-gray-500">{d.name} ({d.value})</span>
+                    <span className="text-[10px] text-slate-500">{d.name} ({d.value})</span>
                   </div>
                 ))}
               </div>
@@ -634,21 +658,21 @@ export default function Reports() {
         {/* Inventory Value by Category */}
         <div className={`${CARD} p-5`}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-800">Inventory Value Distribution by Category</h3>
-            <button onClick={() => handleExport("Value Distribution")} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+            <h3 className={`text-sm font-semibold ${chartTitleClass}`}>Inventory Value Distribution by Category</h3>
+            <button onClick={() => handleExport("Value Distribution")} className={`rounded p-1 ${chartIconClass}`}>
               <Download className="w-3.5 h-3.5" />
             </button>
           </div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={inventoryValueByCategory} layout="vertical" barSize={20}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-              <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={100} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} horizontal={false} />
+              <XAxis type="number" tick={{ fontSize: 10, fill: chartAxis }} axisLine={false} tickLine={false} />
+              <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fill: chartAxis }} axisLine={false} tickLine={false} width={100} />
               <Tooltip
-                contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px", fontSize: "11px" }}
+                contentStyle={chartTooltip}
                 formatter={(value: number) => `₱${value.toLocaleString()}`}
               />
-              <Bar dataKey="value" fill="#B0BF00" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="value" fill={isDark ? "#d7e25f" : "#B0BF00"} radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -656,20 +680,20 @@ export default function Reports() {
         {/* Charts Row 2 */}
         <div className={`${CARD} p-5`}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-800">Monthly Acquisitions vs Retirements</h3>
-            <button onClick={() => handleExport("Acquisitions")} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+            <h3 className={`text-sm font-semibold ${chartTitleClass}`}>Monthly Acquisitions vs Retirements</h3>
+            <button onClick={() => handleExport("Acquisitions")} className={`rounded p-1 ${chartIconClass}`}>
               <Download className="w-3.5 h-3.5" />
             </button>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={monthlyAcquisition}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px", fontSize: "11px" }} />
-              <Legend wrapperStyle={{ fontSize: "11px" }} />
-              <Area type="monotone" dataKey="acquired" stroke="#B0BF00" fill="#B0BF00" fillOpacity={0.15} strokeWidth={2} name="Acquired" />
-              <Area type="monotone" dataKey="retired" stroke="#ef4444" fill="#ef4444" fillOpacity={0.1} strokeWidth={2} name="Retired" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} vertical={false} />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: chartAxis }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: chartAxis }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={chartTooltip} />
+              <Legend wrapperStyle={{ ...chartLegend, fontSize: "11px" }} />
+              <Area type="monotone" dataKey="acquired" stroke={isDark ? "#d7e25f" : "#B0BF00"} fill={isDark ? "#d7e25f" : "#B0BF00"} fillOpacity={isDark ? 0.2 : 0.15} strokeWidth={2} name="Acquired" />
+              <Area type="monotone" dataKey="retired" stroke={isDark ? "#f87171" : "#ef4444"} fill={isDark ? "#f87171" : "#ef4444"} fillOpacity={isDark ? 0.16 : 0.1} strokeWidth={2} name="Retired" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -679,28 +703,28 @@ export default function Reports() {
           {/* Top Assets */}
           <div className={`${CARD} p-5`}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-gray-800">Top Assets by Value</h3>
-              <button onClick={() => handleExport("Top Assets")} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+              <h3 className={`text-sm font-semibold ${chartTitleClass}`}>Top Assets by Value</h3>
+              <button onClick={() => handleExport("Top Assets")} className={`rounded p-1 ${chartIconClass}`}>
                 <Download className="w-3.5 h-3.5" />
               </button>
             </div>
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left pb-2 text-[10px] font-semibold text-gray-400 uppercase">Asset</th>
-                  <th className="text-right pb-2 text-[10px] font-semibold text-gray-400 uppercase">Qty</th>
-                  <th className="text-right pb-2 text-[10px] font-semibold text-gray-400 uppercase">Value</th>
+                <tr className={`border-b ${isDark ? "border-[#314865]" : "border-gray-100"}`}>
+                  <th className="text-left pb-2 text-[10px] font-semibold uppercase text-slate-400">Asset</th>
+                  <th className="text-right pb-2 text-[10px] font-semibold uppercase text-slate-400">Qty</th>
+                  <th className="text-right pb-2 text-[10px] font-semibold uppercase text-slate-400">Value</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className={`divide-y ${isDark ? "divide-[#314865]" : "divide-gray-50"}`}>
                 {topAssets.slice(0, 5).map((item, i) => (
                   <tr key={i}>
                     <td className="py-2.5">
-                      <p className="text-xs font-medium text-gray-700">{item.name}</p>
-                      <p className="text-[10px] text-gray-400 font-mono">{item.sku}</p>
+                      <p className="text-xs font-medium text-slate-700">{item.name}</p>
+                      <p className="text-[10px] font-mono text-slate-400">{item.sku}</p>
                     </td>
-                    <td className="py-2.5 text-right text-xs text-gray-600">{item.qty}</td>
-                    <td className="py-2.5 text-right text-xs font-semibold text-gray-800">₱{item.totalValue.toLocaleString()}</td>
+                    <td className="py-2.5 text-right text-xs text-slate-600">{item.qty}</td>
+                    <td className="py-2.5 text-right text-xs font-semibold text-slate-800">₱{item.totalValue.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -710,7 +734,7 @@ export default function Reports() {
           {/* Low Stock Alerts */}
           <div className={`${CARD} p-5`}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-gray-800">Low Stock Alerts</h3>
+              <h3 className={`text-sm font-semibold ${chartTitleClass}`}>Low Stock Alerts</h3>
               <span className="text-[10px] font-semibold bg-red-50 text-red-500 px-2 py-0.5 rounded-full border border-red-100">
                 {lowStockAlerts.length} assets
               </span>
@@ -723,17 +747,17 @@ export default function Reports() {
                   <div key={i} className="space-y-1">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-medium text-gray-700">{item.name}</p>
-                        <p className="text-[10px] text-gray-400">{item.category} · {item.sku}</p>
+                        <p className="text-xs font-medium text-slate-700">{item.name}</p>
+                        <p className="text-[10px] text-slate-400">{item.category} · {item.sku}</p>
                       </div>
                       <div className="text-right">
                         <span className={`text-xs font-semibold ${isOut ? "text-red-500" : "text-orange-500"}`}>
                           {item.current} / {item.minimum}
                         </span>
-                        <p className="text-[10px] text-gray-400">current / min</p>
+                        <p className="text-[10px] text-slate-400">current / min</p>
                       </div>
                     </div>
-                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className={`h-1.5 rounded-full overflow-hidden ${isDark ? "bg-[#132338]" : "bg-gray-100"}`}>
                       <div
                         className={`h-full rounded-full ${isOut ? "bg-red-400" : "bg-orange-400"}`}
                         style={{ width: `${pct}%` }}

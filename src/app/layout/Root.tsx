@@ -23,7 +23,10 @@ import {
   Shield,
   UserCog,
   Briefcase,
+  Moon,
+  Sun,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useAuth } from "../context/AuthContext";
 import { NotificationPanel } from "../components/NotificationPanel";
 import { RealtimeIndicator } from "../components/RealtimeIndicator";
@@ -34,6 +37,7 @@ export default function Root() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { resolvedTheme, setTheme } = useTheme();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -239,6 +243,18 @@ export default function Root() {
       {/* Sidebar Footer */}
       <div className="border-t border-white/10 p-3">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-3 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
+          <button
+            onClick={toggleTheme}
+            className="mb-3 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-left text-xs font-medium text-white/80 transition-all duration-200 hover:bg-white/10 hover:text-white"
+          >
+            <span className="flex items-center gap-2">
+              {isDark ? <Moon className="h-4 w-4 text-[#B0BF00]" /> : <Sun className="h-4 w-4 text-[#B0BF00]" />}
+              {isDark ? "Dark Mode" : "Light Mode"}
+            </span>
+            <span className="rounded-full bg-[#B0BF00]/15 px-2 py-0.5 text-[10px] font-semibold text-[#B0BF00]">
+              {isDark ? "On" : "Off"}
+            </span>
+          </button>
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B0BF00] to-[#8a9600] text-sm font-bold text-[#1a1d27] shadow-lg">
               {user ? getInitials(user.name) : "U"}
@@ -282,34 +298,37 @@ export default function Root() {
     );
   };
 
+  const isDark = resolvedTheme === "dark";
+  const toggleTheme = () => setTheme(isDark ? "light" : "dark");
+
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-[#B0BF00]/5 overflow-hidden relative">
+    <div className="flex h-screen overflow-hidden relative bg-gradient-to-br from-gray-50 via-gray-100 to-[#B0BF00]/5 text-slate-900 dark:from-[#07111f] dark:via-[#0d1a2b] dark:to-[#07111f] dark:text-slate-100">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#B0BF00]/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#B0BF00]/10 rounded-full blur-3xl animate-pulse dark:bg-[#8fa100]/8" />
         <div
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#B0BF00]/10 rounded-full blur-3xl animate-pulse"
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#B0BF00]/10 rounded-full blur-3xl animate-pulse dark:bg-[#8fa100]/8"
           style={{ animationDelay: "1000ms" }}
         />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#B0BF00]/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#B0BF00]/5 rounded-full blur-3xl dark:bg-[#8fa100]/4" />
       </div>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex lg:flex-col lg:w-56 bg-[#1a1d27]/95 backdrop-blur-xl flex-shrink-0 relative z-10 border-r border-white/5">
+      <aside className="hidden lg:flex lg:flex-col lg:w-56 bg-[#1a1d27]/95 backdrop-blur-xl flex-shrink-0 relative z-10 border-r border-white/5 dark:bg-[#0a1626]/95 dark:border-[#20324a]">
         <SidebarContent />
       </aside>
 
       {/* Mobile sidebar overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-[#07111f]/70 z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Mobile sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 w-56 bg-[#1a1d27]/95 backdrop-blur-xl flex flex-col z-50 transform transition-transform duration-200 ease-in-out lg:hidden border-r border-white/5 ${
+        className={`fixed inset-y-0 left-0 w-56 bg-[#1a1d27]/95 backdrop-blur-xl flex flex-col z-50 transform transition-transform duration-200 ease-in-out lg:hidden border-r border-white/5 dark:bg-[#0a1626]/95 dark:border-[#20324a] ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -319,7 +338,7 @@ export default function Root() {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden relative z-10">
         {/* Header */}
-        <header className="h-14 bg-white/80 backdrop-blur-xl border-b border-[#B0BF00]/20 flex items-center px-3 md:px-4 lg:px-6 gap-2 md:gap-3 flex-shrink-0 shadow-[0_4px_20px_rgba(176,191,0,0.08)]">
+        <header className="h-14 bg-white/80 backdrop-blur-xl border-b border-[#B0BF00]/20 flex items-center px-3 md:px-4 lg:px-6 gap-2 md:gap-3 flex-shrink-0 shadow-[0_4px_20px_rgba(176,191,0,0.08)] dark:bg-[#0d1a2b]/85 dark:border-[#20324a] dark:shadow-[0_4px_20px_rgba(2,8,23,0.45)]">
           {/* Mobile hamburger */}
           <button
             className="lg:hidden text-gray-500 hover:text-gray-700 transition-colors"
@@ -334,7 +353,7 @@ export default function Root() {
           </button>
 
           {/* Page title */}
-          <h2 className="text-sm md:text-base font-semibold text-gray-800 truncate">
+          <h2 className="text-sm md:text-base font-semibold text-gray-800 truncate dark:text-slate-100">
             {currentPage === "Dashboard"
               ? "Dashboard Overview"
               : currentPage === "Inventory"
@@ -344,6 +363,15 @@ export default function Root() {
 
           {/* Spacer */}
           <div className="flex-1" />
+
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-2 rounded-xl border border-[#B0BF00]/15 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-all duration-200 hover:border-[#B0BF00]/35 hover:bg-[#f7fad8] dark:border-[#20324a] dark:bg-[#132338] dark:text-slate-200 dark:hover:bg-[#1a2e45]"
+            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {isDark ? <Sun className="h-4 w-4 text-[#B0BF00]" /> : <Moon className="h-4 w-4 text-[#B0BF00]" />}
+            <span className="hidden sm:inline">{isDark ? "Light Mode" : "Dark Mode"}</span>
+          </button>
 
           {/* Notification bell */}
           <NotificationPanel />
@@ -374,7 +402,7 @@ export default function Root() {
             createPortal(
               <div
                 ref={profilePanelRef}
-                className="fixed w-72 bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border-2 border-gray-100 overflow-hidden z-[9999]"
+                className="fixed w-72 bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border-2 border-gray-100 overflow-hidden z-[9999] dark:bg-[#0d1a2b] dark:border-[#20324a]"
                 style={{ top: `${profilePosition.top}px`, right: `${profilePosition.right}px` }}
               >
                 {/* Header with gradient */}
@@ -395,15 +423,15 @@ export default function Root() {
                 </div>
 
                 {/* Profile Details */}
-                <div className="p-4 space-y-3 border-b border-gray-100">
+                <div className="p-4 space-y-3 border-b border-gray-100 dark:border-[#20324a]">
                   {/* Full Name */}
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 dark:bg-[#132338]">
                       <User className="w-4 h-4 text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-500 font-medium">Full Name</p>
-                      <p className="text-sm text-gray-900 font-semibold truncate">
+                      <p className="text-xs text-gray-500 font-medium dark:text-slate-400">Full Name</p>
+                      <p className="text-sm text-gray-900 font-semibold truncate dark:text-slate-100">
                         {user?.name || "User"}
                       </p>
                     </div>
@@ -411,12 +439,12 @@ export default function Root() {
 
                   {/* Email */}
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0 dark:bg-[#132338]">
                       <Mail className="w-4 h-4 text-purple-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-500 font-medium">Email Address</p>
-                      <p className="text-sm text-gray-900 font-semibold truncate">
+                      <p className="text-xs text-gray-500 font-medium dark:text-slate-400">Email Address</p>
+                      <p className="text-sm text-gray-900 font-semibold truncate dark:text-slate-100">
                         {user?.email || "user@example.com"}
                       </p>
                     </div>
@@ -424,15 +452,15 @@ export default function Root() {
 
                   {/* Role */}
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0 dark:bg-[#132338]">
                       {(() => {
                         const RoleIcon = getRoleIcon(user?.role || "");
                         return <RoleIcon className="w-4 h-4 text-green-600" />;
                       })()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-500 font-medium">Role</p>
-                      <p className="text-sm text-gray-900 font-semibold">
+                      <p className="text-xs text-gray-500 font-medium dark:text-slate-400">Role</p>
+                      <p className="text-sm text-gray-900 font-semibold dark:text-slate-100">
                         {user?.role || "User"}
                       </p>
                     </div>
@@ -444,9 +472,9 @@ export default function Root() {
                   <Link
                     to="/dashboard/settings"
                     onClick={() => setIsProfileOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200 group"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition-all duration-200 group dark:text-slate-200 dark:hover:bg-[#132338]"
                   >
-                    <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-[#B0BF00]/10 transition-colors">
+                    <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-[#B0BF00]/10 transition-colors dark:bg-[#132338] dark:group-hover:bg-[#B0BF00]/10">
                       <Settings className="w-4 h-4 text-gray-600 group-hover:text-[#B0BF00] transition-colors" />
                     </div>
                     <span className="flex-1">Settings</span>

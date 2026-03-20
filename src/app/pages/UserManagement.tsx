@@ -339,7 +339,12 @@ export default function UserManagement() {
     currentPage * itemsPerPage
   );
 
-  const fieldClass = "h-10 text-sm rounded-lg border-gray-200 focus:border-[#B0BF00] focus:ring-[#B0BF00]";
+  const fieldClass =
+    "h-11 rounded-xl border border-slate-200 bg-white text-sm shadow-sm transition focus:border-[#B0BF00] focus:ring-4 focus:ring-[#B0BF00]/10";
+  const sectionCardClass =
+    "overflow-hidden rounded-[28px] border border-[#B0BF00]/15 bg-white/90 shadow-[0_24px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 hover:shadow-[0_26px_70px_rgba(15,23,42,0.12)]";
+  const labelChipClass =
+    "inline-flex items-center gap-2 rounded-full border border-[#B0BF00]/20 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7f8f00]";
 
   if (loading) {
     return (
@@ -361,47 +366,61 @@ export default function UserManagement() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Premium Header */}
-      <div className="bg-gradient-to-r from-[#B0BF00] to-[#8a9600] rounded-2xl p-6 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-white/20 backdrop-blur-xl rounded-xl flex items-center justify-center">
-              <Users className="w-7 h-7 text-white" />
+    <div className="space-y-6 md:space-y-7">
+      {/* Header */}
+      <div className={sectionCardClass}>
+        <div className="relative overflow-hidden px-6 py-6 sm:px-8 sm:py-7">
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#B0BF00] via-[#d6df63] to-[#8a9600]" />
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B0BF00] to-[#8a9600] text-white shadow-lg">
+                <Users className="h-7 w-7" />
+              </div>
+              <div className="space-y-1">
+                <span className={labelChipClass}>Module</span>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                  User Management
+                </h1>
+                <p className="max-w-2xl text-sm leading-6 text-slate-500">
+                  Manage system users, assign roles, and control access with a cleaner administrative view.
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">User Management</h1>
-              <p className="text-sm text-white/80 mt-0.5">Manage system users and their roles</p>
-            </div>
+            <Button
+              onClick={() => setAddModalOpen(true)}
+              className="h-11 rounded-xl bg-[#B0BF00] px-5 font-semibold text-white shadow-lg transition-all duration-300 hover:bg-[#9aaa00] hover:scale-[1.02]"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add User
+            </Button>
           </div>
-          <Button
-            onClick={() => setAddModalOpen(true)}
-            className="bg-white hover:bg-white/90 text-[#B0BF00] h-11 px-5 rounded-xl shadow-lg font-semibold transition-all duration-300 hover:scale-[1.02]"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add User
-          </Button>
         </div>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: "Total Users", value: stats.total, icon: Users, color: "bg-gradient-to-br from-gray-500 to-gray-600", iconBg: "bg-gray-100" },
-          { label: "Admins", value: stats.admins, icon: Shield, color: "bg-gradient-to-br from-purple-500 to-purple-600", iconBg: "bg-purple-100" },
-          { label: "IT Officers", value: stats.itOfficers, icon: UserCog, color: "bg-gradient-to-br from-blue-500 to-blue-600", iconBg: "bg-blue-100" },
-          { label: "HR Officers", value: stats.hrOfficers, icon: Briefcase, color: "bg-gradient-to-br from-green-500 to-green-600", iconBg: "bg-green-100" },
+          { label: "Total Users", value: stats.total, icon: Users, iconBg: "bg-slate-100 text-slate-600" },
+          { label: "Admins", value: stats.admins, icon: Shield, iconBg: "bg-purple-100 text-purple-600" },
+          { label: "IT Officers", value: stats.itOfficers, icon: UserCog, iconBg: "bg-blue-100 text-blue-600" },
+          { label: "HR Officers", value: stats.hrOfficers, icon: Briefcase, iconBg: "bg-emerald-100 text-emerald-600" },
         ].map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{stat.label}</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">{stat.value}</p>
+            <div
+              key={index}
+              className="overflow-hidden rounded-[24px] border border-[#B0BF00]/15 bg-white/90 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.07)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_48px_rgba(15,23,42,0.12)]"
+            >
+              <div className="mb-4 h-1.5 rounded-full bg-gradient-to-r from-[#B0BF00] to-[#8a9600]" />
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+                    {stat.label}
+                  </p>
+                  <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900">{stat.value}</p>
                 </div>
-                <div className={`w-12 h-12 ${stat.iconBg} rounded-xl flex items-center justify-center`}>
-                  <Icon className={`w-6 h-6 ${stat.color.replace('bg-gradient-to-br from-', 'text-').replace(/-\d+$/, '-500').split(' ')[0]}`} />
+                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${stat.iconBg}`}>
+                  <Icon className="h-6 w-6" />
                 </div>
               </div>
             </div>
@@ -410,8 +429,9 @@ export default function UserManagement() {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-5">
-        <div className="flex flex-col sm:flex-row gap-3">
+      <div className={sectionCardClass}>
+        <div className="p-5 sm:p-6">
+          <div className="flex flex-col gap-3 sm:flex-row">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400" />
             <Input
@@ -424,61 +444,62 @@ export default function UserManagement() {
               className="pl-12 h-11 text-sm border-2 border-gray-200 rounded-xl focus:border-[#B0BF00] focus:ring-4 focus:ring-[#B0BF00]/10 transition-all"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 sm:flex-nowrap">
             <Button
               variant="outline"
-              className="h-11 px-4 rounded-xl border-2 hover:bg-gray-50 transition-all"
+              className="h-11 rounded-xl border-2 border-slate-200 px-4 font-medium text-slate-700 transition-all hover:border-[#B0BF00] hover:bg-slate-50 hover:text-[#7f8f00]"
             >
               <Filter className="w-4 h-4 mr-2" />
               Filter
             </Button>
             <Button
               variant="outline"
-              className="h-11 px-4 rounded-xl border-2 hover:bg-gray-50 transition-all"
+              className="h-11 rounded-xl border-2 border-slate-200 px-4 font-medium text-slate-700 transition-all hover:border-[#B0BF00] hover:bg-slate-50 hover:text-[#7f8f00]"
             >
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
           </div>
         </div>
+        </div>
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
+      <div className={sectionCardClass}>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gradient-to-r from-gray-50 to-gray-100/50 border-b-2 border-gray-200">
+            <thead className="bg-gradient-to-r from-slate-50 to-slate-100/70 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.18em] text-slate-600">
                   Name
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.18em] text-slate-600">
                   Email
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.18em] text-slate-600">
                   Role
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.18em] text-slate-600">
                   Status
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-[0.18em] text-slate-600">
                   Created
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-[0.18em] text-slate-600">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100">
               {paginated.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                        <Users className="w-8 h-8 text-gray-400" />
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+                        <Users className="h-8 w-8 text-slate-400" />
                       </div>
-                      <p className="text-sm font-medium text-gray-500">No users found</p>
-                      <p className="text-xs text-gray-400">Try adjusting your search criteria</p>
+                      <p className="text-sm font-medium text-slate-600">No users found</p>
+                      <p className="text-xs text-slate-400">Try adjusting your search criteria</p>
                     </div>
                   </td>
                 </tr>
@@ -486,23 +507,23 @@ export default function UserManagement() {
                 paginated.map((systemUser) => {
                   const RoleIcon = getRoleIcon(systemUser.role);
                   return (
-                    <tr key={systemUser.user_id} className="hover:bg-gray-50/50 transition-all duration-200 group">
+                    <tr key={systemUser.user_id} className="group transition-all duration-200 hover:bg-slate-50/70">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-[#B0BF00] to-[#8a9600] rounded-xl flex items-center justify-center text-white font-bold text-sm">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#B0BF00] to-[#8a9600] text-sm font-bold text-white">
                             {systemUser.full_name.charAt(0).toUpperCase()}
                           </div>
-                          <p className="text-sm font-semibold text-gray-900 group-hover:text-[#B0BF00] transition-colors">
+                          <p className="text-sm font-semibold text-slate-900 transition-colors group-hover:text-[#7f8f00]">
                             {systemUser.full_name}
                           </p>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <p className="text-sm text-gray-600">{systemUser.email}</p>
+                        <p className="text-sm text-slate-600">{systemUser.email}</p>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`inline-flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-xl border-2 ${getRoleStyle(
+                          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold shadow-sm ${getRoleStyle(
                             systemUser.role
                           )}`}
                         >
@@ -512,7 +533,7 @@ export default function UserManagement() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-bold ${
+                          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold shadow-sm ${
                             systemUser.is_blocked
                               ? "border-red-200 bg-red-50 text-red-700"
                               : "border-emerald-200 bg-emerald-50 text-emerald-700"
@@ -527,7 +548,7 @@ export default function UserManagement() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-slate-600">
                           {new Date(systemUser.created_at).toLocaleDateString()}
                         </p>
                       </td>
@@ -535,14 +556,14 @@ export default function UserManagement() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => setViewTarget(systemUser)}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 hover:scale-110"
+                            className="rounded-xl p-2 text-slate-400 transition-all duration-200 hover:scale-110 hover:bg-blue-50 hover:text-blue-600"
                             title="View"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleOpenEditModal(systemUser)}
-                            className="p-2 text-gray-400 hover:text-[#B0BF00] hover:bg-[#B0BF00]/10 rounded-xl transition-all duration-200 hover:scale-110"
+                            className="rounded-xl p-2 text-slate-400 transition-all duration-200 hover:scale-110 hover:bg-[#B0BF00]/10 hover:text-[#7f8f00]"
                             title="Edit"
                           >
                             <Edit className="w-4 h-4" />
@@ -550,7 +571,7 @@ export default function UserManagement() {
                           <button
                             onClick={() => setBlockTarget(systemUser)}
                             disabled={user?.id === systemUser.user_id}
-                            className={`p-2 rounded-xl transition-all duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-40 ${
+                            className={`rounded-xl p-2 transition-all duration-200 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-40 ${
                               systemUser.is_blocked
                                 ? "text-gray-400 hover:text-emerald-600 hover:bg-emerald-50"
                                 : "text-gray-400 hover:text-amber-600 hover:bg-amber-50"
@@ -565,7 +586,7 @@ export default function UserManagement() {
                           </button>
                           <button
                             onClick={() => setDeleteTarget(systemUser)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-110"
+                            className="rounded-xl p-2 text-slate-400 transition-all duration-200 hover:scale-110 hover:bg-red-50 hover:text-red-600"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -581,26 +602,26 @@ export default function UserManagement() {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-6 py-4 border-t-2 border-gray-200 bg-gray-50/50">
-          <p className="text-xs text-gray-600 font-semibold">
-            Showing <span className="text-[#B0BF00]">{paginated.length}</span> of <span className="text-[#B0BF00]">{filtered.length}</span> users
+        <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50/70 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs font-semibold text-slate-600">
+            Showing <span className="text-[#7f8f00]">{paginated.length}</span> of <span className="text-[#7f8f00]">{filtered.length}</span> users
           </p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="flex items-center gap-1.5 px-4 py-2 border-2 border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:bg-white hover:border-[#B0BF00] hover:text-[#B0BF00] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+              className="flex items-center gap-1.5 rounded-xl border-2 border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition-all duration-200 hover:border-[#B0BF00] hover:bg-white hover:text-[#7f8f00] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronLeft className="w-4 h-4" />
               Previous
             </button>
-            <div className="px-4 py-2 bg-[#B0BF00] text-white rounded-xl text-xs font-bold">
+            <div className="rounded-xl bg-[#B0BF00] px-4 py-2 text-xs font-bold text-white shadow-sm">
               {currentPage} / {totalPages || 1}
             </div>
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="flex items-center gap-1.5 px-4 py-2 border-2 border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:bg-white hover:border-[#B0BF00] hover:text-[#B0BF00] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+              className="flex items-center gap-1.5 rounded-xl border-2 border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition-all duration-200 hover:border-[#B0BF00] hover:bg-white hover:text-[#7f8f00] disabled:cursor-not-allowed disabled:opacity-40"
             >
               Next
               <ChevronRight className="w-4 h-4" />
@@ -620,7 +641,7 @@ export default function UserManagement() {
           }
         }}
       >
-        <DialogContent className="sm:max-w-lg rounded-xl">
+        <DialogContent className="sm:max-w-lg rounded-[24px] border border-[#B0BF00]/15 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.16)]">
           <DialogHeader>
             <DialogTitle>{editTarget ? "Edit User" : "Add New User"}</DialogTitle>
             <DialogDescription>
@@ -730,7 +751,7 @@ export default function UserManagement() {
 
       {/* View User Modal */}
       <Dialog open={!!viewTarget} onOpenChange={(open) => !open && setViewTarget(null)}>
-        <DialogContent className="sm:max-w-md rounded-xl">
+          <DialogContent className="sm:max-w-md rounded-[24px] border border-[#B0BF00]/15 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.16)]">
           <DialogHeader>
             <DialogTitle>User Details</DialogTitle>
             <DialogDescription>
@@ -804,7 +825,7 @@ export default function UserManagement() {
 
       {/* Block Confirmation */}
       <Dialog open={!!blockTarget} onOpenChange={(open) => !open && setBlockTarget(null)}>
-        <DialogContent className="sm:max-w-sm rounded-xl">
+          <DialogContent className="sm:max-w-sm rounded-[24px] border border-[#B0BF00]/15 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.16)]">
           <DialogHeader>
             <DialogTitle>
               {blockTarget?.is_blocked ? "Unblock User" : "Block User"}
@@ -850,7 +871,7 @@ export default function UserManagement() {
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent className="sm:max-w-sm rounded-xl">
+          <DialogContent className="sm:max-w-sm rounded-[24px] border border-[#B0BF00]/15 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.16)]">
           <DialogHeader>
             <DialogTitle>Delete User</DialogTitle>
             <DialogDescription>

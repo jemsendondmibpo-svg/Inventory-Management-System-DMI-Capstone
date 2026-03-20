@@ -97,7 +97,11 @@ export default function SettingsPage() {
     sections.find((section) => section.id === activeSection) || sections[0];
 
   const fieldClass =
-    "h-11 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-[#B0BF00] focus:ring-4 focus:ring-[#B0BF00]/10";
+    "h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-[#B0BF00] focus:ring-4 focus:ring-[#B0BF00]/10";
+  const shellCardClass =
+    "overflow-hidden rounded-[28px] border border-[#B0BF00]/15 bg-white/90 shadow-[0_24px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 hover:shadow-[0_26px_70px_rgba(15,23,42,0.12)]";
+  const labelChipClass =
+    "inline-flex items-center gap-2 rounded-full border border-[#B0BF00]/20 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7f8f00]";
 
   const renderSectionHeader = (
     title: string,
@@ -108,16 +112,17 @@ export default function SettingsPage() {
     const Icon = icon;
 
     return (
-      <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white px-5 py-5 sm:px-6">
-        <div className="flex items-start gap-3">
+      <div className="border-b border-slate-100 px-5 py-5 sm:px-6">
+        <div className="flex items-start gap-4">
           <div
             className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} shadow-lg`}
           >
             <Icon className="h-5 w-5 text-white" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-lg font-bold text-gray-800">{title}</h3>
-            <p className="mt-1 text-xs leading-5 text-gray-500">{description}</p>
+            <span className={labelChipClass}>Section</span>
+            <h3 className="mt-2 text-lg font-bold tracking-tight text-slate-900">{title}</h3>
+            <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>
           </div>
         </div>
       </div>
@@ -125,8 +130,8 @@ export default function SettingsPage() {
   };
 
   const renderSectionFooter = (buttonLabel: string) => (
-    <div className="flex flex-col gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-xs text-gray-400">
+    <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-xs text-slate-400">
         Last updated: {new Date().toLocaleDateString()}
       </p>
       <button
@@ -149,36 +154,41 @@ export default function SettingsPage() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-[#B0BF00] to-[#8a9600] shadow-lg">
-        <div className="flex flex-col gap-5 px-5 py-6 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20 backdrop-blur-xl">
-              <Sparkles className="h-6 w-6 text-white" />
+    <div className="mx-auto max-w-7xl space-y-6 md:space-y-7">
+      <div className={shellCardClass}>
+        <div className="relative overflow-hidden px-6 py-6 sm:px-8 sm:py-7">
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#B0BF00] via-[#d6df63] to-[#8a9600]" />
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B0BF00] to-[#8a9600] text-white shadow-lg">
+                <Sparkles className="h-6 w-6" />
+              </div>
+              <div className="space-y-1">
+                <span className={labelChipClass}>Module</span>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                  System Settings
+                </h1>
+                <p className="max-w-2xl text-sm leading-6 text-slate-500">
+                  Manage your personal information, company profile, and notification preferences in one clean workspace.
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">System Settings</h1>
-              <p className="mt-1 text-sm text-white/80">
-                Manage your personal information, company profile, and notification
-                preferences.
-              </p>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
-            <div className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-xl">
-              <p className="text-[11px] uppercase tracking-wider text-white/65">
-                Active Module
-              </p>
-              <p className="mt-1 text-sm font-semibold text-white">
-                {activeSectionData.label}
-              </p>
-            </div>
-            <div className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-xl">
-              <p className="text-[11px] uppercase tracking-wider text-white/65">Role</p>
-              <p className="mt-1 text-sm font-semibold text-white">
-                {user?.role || "User"}
-              </p>
+            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+              <div className="rounded-2xl border border-[#B0BF00]/15 bg-slate-50 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-wider text-slate-500">
+                  Active Module
+                </p>
+                <p className="mt-1 text-sm font-semibold text-slate-900">
+                  {activeSectionData.label}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-[#B0BF00]/15 bg-slate-50 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-wider text-slate-500">Role</p>
+                <p className="mt-1 text-sm font-semibold text-slate-900">
+                  {user?.role || "User"}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -186,9 +196,9 @@ export default function SettingsPage() {
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[290px_minmax(0,1fr)]">
         <aside className="space-y-4 xl:sticky xl:top-4 xl:self-start">
-          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-lg">
-            <div className="flex items-center gap-3 rounded-2xl border border-[#B0BF00]/15 bg-gradient-to-r from-lime-50 to-white p-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B0BF00] to-[#8a9600] text-sm font-bold text-[#1a1d27]">
+          <div className={shellCardClass}>
+            <div className="flex items-center gap-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white p-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#B0BF00] to-[#8a9600] text-sm font-bold text-white">
                 {(user?.name || "User")
                   .split(" ")
                   .map((part) => part[0])
@@ -197,18 +207,18 @@ export default function SettingsPage() {
                   .toUpperCase()}
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-gray-900">
+                <p className="truncate text-sm font-semibold text-slate-900">
                   {user?.name || "User"}
                 </p>
-                <div className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-lime-100 px-2.5 py-1 text-[11px] font-medium text-lime-800">
+                <div className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-[#B0BF00]/10 px-2.5 py-1 text-[11px] font-medium text-[#7f8f00]">
                   <Shield className="h-3.5 w-3.5" />
                   {user?.role || "User"}
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 space-y-2">
-              <p className="px-2 text-[11px] font-bold uppercase tracking-[0.18em] text-gray-400">
+            <div className="space-y-2 p-4">
+              <p className="px-2 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
                 Navigation
               </p>
               {sections.map((section) => {
@@ -222,14 +232,14 @@ export default function SettingsPage() {
                     className={`w-full rounded-2xl border px-4 py-3 text-left transition-all duration-200 ${
                       active
                         ? "border-[#B0BF00]/40 bg-gradient-to-r from-[#B0BF00] to-[#9aaa00] text-white shadow-lg shadow-[#B0BF00]/25"
-                        : "border-transparent bg-gray-50 text-gray-700 hover:border-gray-200 hover:bg-white hover:shadow-sm"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-[#B0BF00]/30 hover:bg-slate-50 hover:shadow-sm"
                     }`}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-3">
                         <div
                           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                            active ? "bg-white/20" : section.soft
+                            active ? "bg-white/20" : "bg-slate-100"
                           }`}
                         >
                           <Icon
@@ -242,7 +252,7 @@ export default function SettingsPage() {
                           <p className="truncate text-sm font-semibold">{section.label}</p>
                           <p
                             className={`mt-0.5 truncate text-xs ${
-                              active ? "text-white/80" : "text-gray-500"
+                            active ? "text-white/80" : "text-slate-500"
                             }`}
                           >
                             {section.description}
@@ -251,7 +261,7 @@ export default function SettingsPage() {
                       </div>
                       <ChevronRight
                         className={`h-4 w-4 shrink-0 transition-transform ${
-                          active ? "translate-x-0.5 text-white" : "text-gray-300"
+                          active ? "translate-x-0.5 text-white" : "text-slate-300"
                         }`}
                       />
                     </div>
@@ -264,7 +274,7 @@ export default function SettingsPage() {
 
         <section className="space-y-6">
           {activeSection === "personal" && (
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+            <div className={shellCardClass}>
               {renderSectionHeader(
                 "Personal Information",
                 "Manage your account details and keep your profile information up to date.",
@@ -275,57 +285,57 @@ export default function SettingsPage() {
               <div className="space-y-6 p-5 sm:p-6">
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                       <User className="h-3.5 w-3.5 text-blue-500" />
                       Full Name
                     </label>
                     <input className={fieldClass} value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} placeholder="Enter your full name" />
                   </div>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                       <Mail className="h-3.5 w-3.5 text-blue-500" />
                       Email Address
                     </label>
                     <input className={fieldClass} type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} placeholder="your.email@company.com" />
                   </div>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                       <Phone className="h-3.5 w-3.5 text-blue-500" />
                       Phone Number
                     </label>
                     <input className={fieldClass} value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} placeholder="+63 XXX XXX XXXX" />
                   </div>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                       <Building className="h-3.5 w-3.5 text-blue-500" />
                       Department
                     </label>
                     <input className={fieldClass} value={profile.department} onChange={(e) => setProfile({ ...profile, department: e.target.value })} placeholder="Your department" />
                   </div>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                       <Briefcase className="h-3.5 w-3.5 text-blue-500" />
                       Position
                     </label>
                     <input className={fieldClass} value={profile.position} onChange={(e) => setProfile({ ...profile, position: e.target.value })} placeholder="Your position" />
                   </div>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                       <Info className="h-3.5 w-3.5 text-blue-500" />
                       Date Joined
                     </label>
                     <input className={fieldClass} value={profile.dateJoined} onChange={(e) => setProfile({ ...profile, dateJoined: e.target.value })} placeholder="Employment date" />
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                       <Briefcase className="h-3.5 w-3.5 text-blue-500" />
                       Role
                     </label>
                     <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                          <p className="text-sm font-semibold text-gray-800">{profile.role}</p>
-                          <p className="mt-1 text-xs text-gray-500">
+                          <p className="text-sm font-semibold text-slate-800">{profile.role}</p>
+                          <p className="mt-1 text-xs text-slate-500">
                             Your role is managed centrally for security and access control.
                           </p>
                         </div>
@@ -348,7 +358,7 @@ export default function SettingsPage() {
           )}
 
           {activeSection === "company" && (
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+            <div className={shellCardClass}>
               {renderSectionHeader(
                 "Company Information",
                 "Review and maintain the business profile shown across the inventory system.",
@@ -360,32 +370,32 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <div className="h-4 w-1 rounded-full bg-violet-500" />
-                    <h4 className="text-sm font-bold text-gray-700">Basic Information</h4>
+                    <h4 className="text-sm font-bold text-slate-700">Basic Information</h4>
                   </div>
                   <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                     <div className="space-y-2 md:col-span-2">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <Building2 className="h-3.5 w-3.5 text-violet-500" />
                         Company Name
                       </label>
                       <input className={fieldClass} value={companyInfo.companyName} onChange={(e) => setCompanyInfo({ ...companyInfo, companyName: e.target.value })} placeholder="Your company name" />
                     </div>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <Mail className="h-3.5 w-3.5 text-violet-500" />
                         Company Email
                       </label>
                       <input className={fieldClass} type="email" value={companyInfo.email} onChange={(e) => setCompanyInfo({ ...companyInfo, email: e.target.value })} placeholder="contact@company.com" />
                     </div>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <Phone className="h-3.5 w-3.5 text-violet-500" />
                         Phone Number
                       </label>
                       <input className={fieldClass} value={companyInfo.phone} onChange={(e) => setCompanyInfo({ ...companyInfo, phone: e.target.value })} placeholder="+63 XXX XXX XXXX" />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <Globe className="h-3.5 w-3.5 text-violet-500" />
                         Website
                       </label>
@@ -397,39 +407,39 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <div className="h-4 w-1 rounded-full bg-violet-500" />
-                    <h4 className="text-sm font-bold text-gray-700">Address Information</h4>
+                    <h4 className="text-sm font-bold text-slate-700">Address Information</h4>
                   </div>
                   <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                     <div className="space-y-2 md:col-span-2">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <MapPin className="h-3.5 w-3.5 text-violet-500" />
                         Street Address
                       </label>
                       <input className={fieldClass} value={companyInfo.address} onChange={(e) => setCompanyInfo({ ...companyInfo, address: e.target.value })} placeholder="Building, floor, street" />
                     </div>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <MapPin className="h-3.5 w-3.5 text-violet-500" />
                         City
                       </label>
                       <input className={fieldClass} value={companyInfo.city} onChange={(e) => setCompanyInfo({ ...companyInfo, city: e.target.value })} placeholder="City" />
                     </div>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <MapPin className="h-3.5 w-3.5 text-violet-500" />
                         Province
                       </label>
                       <input className={fieldClass} value={companyInfo.province} onChange={(e) => setCompanyInfo({ ...companyInfo, province: e.target.value })} placeholder="Province / State" />
                     </div>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <MapPin className="h-3.5 w-3.5 text-violet-500" />
                         Postal Code
                       </label>
                       <input className={fieldClass} value={companyInfo.postalCode} onChange={(e) => setCompanyInfo({ ...companyInfo, postalCode: e.target.value })} placeholder="XXXX" />
                     </div>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <Globe className="h-3.5 w-3.5 text-violet-500" />
                         Country
                       </label>
@@ -441,32 +451,32 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <div className="h-4 w-1 rounded-full bg-violet-500" />
-                    <h4 className="text-sm font-bold text-gray-700">Business Details</h4>
+                    <h4 className="text-sm font-bold text-slate-700">Business Details</h4>
                   </div>
                   <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                     <div className="space-y-2">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <Briefcase className="h-3.5 w-3.5 text-violet-500" />
                         Business Type
                       </label>
                       <input className={fieldClass} value={companyInfo.businessType} onChange={(e) => setCompanyInfo({ ...companyInfo, businessType: e.target.value })} placeholder="Corporation, LLC, etc." />
                     </div>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <Briefcase className="h-3.5 w-3.5 text-violet-500" />
                         Industry
                       </label>
                       <input className={fieldClass} value={companyInfo.industry} onChange={(e) => setCompanyInfo({ ...companyInfo, industry: e.target.value })} placeholder="Industry sector" />
                     </div>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <Briefcase className="h-3.5 w-3.5 text-violet-500" />
                         Registration Number
                       </label>
                       <input className={fieldClass} value={companyInfo.registrationNumber} onChange={(e) => setCompanyInfo({ ...companyInfo, registrationNumber: e.target.value })} placeholder="Business registration number" />
                     </div>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <Briefcase className="h-3.5 w-3.5 text-violet-500" />
                         Tax ID
                       </label>
@@ -480,7 +490,7 @@ export default function SettingsPage() {
           )}
 
           {activeSection === "notifications" && (
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+            <div className={shellCardClass}>
               {renderSectionHeader(
                 "Notification Preferences",
                 "Choose which alerts and operational updates you want to receive.",
@@ -499,13 +509,13 @@ export default function SettingsPage() {
                   const checked = notifications[item.key as keyof typeof notifications];
 
                   return (
-                    <div key={item.key} className="rounded-2xl border border-gray-100 bg-gray-50/60 p-4 transition-all duration-200 hover:border-gray-200 hover:bg-white hover:shadow-sm">
+                    <div key={item.key} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4 transition-all duration-200 hover:border-slate-200 hover:bg-white hover:shadow-sm">
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-start gap-4">
                           <div className="text-2xl leading-none">{item.icon}</div>
                           <div>
-                            <p className="text-sm font-semibold text-gray-800">{item.label}</p>
-                            <p className="mt-1 text-xs leading-5 text-gray-500">{item.desc}</p>
+                            <p className="text-sm font-semibold text-slate-800">{item.label}</p>
+                            <p className="mt-1 text-xs leading-5 text-slate-500">{item.desc}</p>
                           </div>
                         </div>
                         <button
