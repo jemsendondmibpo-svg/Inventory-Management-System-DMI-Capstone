@@ -3,7 +3,7 @@ import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Legend,
 } from "recharts";
-import { Download, TrendingUp, TrendingDown, Package, AlertTriangle, CheckCircle, Clock, Printer, FileText, File } from "lucide-react";
+import { Download, TrendingUp, TrendingDown, Package, AlertTriangle, CheckCircle, Clock, Printer, FileText, File, LayoutDashboard } from "lucide-react";
 import { toast } from "sonner";
 import { useInventory } from "../context/InventoryContext";
 import { useAssignments } from "../context/AssignmentsContext";
@@ -17,7 +17,7 @@ import {
 
 const COLORS = ["#B0BF00", "#1a1d27", "#94a3b8", "#64748b", "#C5D300", "#8BA000"];
 
-const CARD = "bg-white/80 backdrop-blur-xl rounded-xl shadow-[0_4px_20px_rgba(176,191,0,0.08)] border border-[#B0BF00]/20 p-5 hover:shadow-[0_8px_30px_rgba(176,191,0,0.15)] transition-all duration-300";
+const CARD = "overflow-hidden rounded-[28px] border border-[#B0BF00]/15 bg-white/90 shadow-[0_24px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 hover:shadow-[0_26px_70px_rgba(15,23,42,0.12)]";
 
 export default function Reports() {
   const [period, setPeriod] = useState("6months");
@@ -288,6 +288,41 @@ export default function Reports() {
     },
   ];
 
+  const reportSummaryCards = [
+    {
+      label: "Total Assets",
+      value: totalAssets.toString(),
+      description: "All tracked items across categories and locations.",
+      icon: Package,
+      accent: "from-[#f7fad8] to-white",
+      iconClass: "text-[#7f8f00]",
+    },
+    {
+      label: "In Stock",
+      value: totalInStock.toString(),
+      description: `${totalAssets > 0 ? Math.round((totalInStock / totalAssets) * 100) : 0}% of all assets are ready for use.`,
+      icon: CheckCircle,
+      accent: "from-emerald-50 to-white",
+      iconClass: "text-emerald-600",
+    },
+    {
+      label: "Needs Attention",
+      value: (totalLowStock + totalOutOfStock).toString(),
+      description: "Low stock and out of stock items that need action.",
+      icon: AlertTriangle,
+      accent: "from-amber-50 to-white",
+      iconClass: "text-amber-600",
+    },
+    {
+      label: "Inventory Value",
+      value: `₱${totalInventoryValue.toLocaleString()}`,
+      description: "Current total value of the inventory in the system.",
+      icon: Clock,
+      accent: "from-slate-50 to-white",
+      iconClass: "text-slate-700",
+    },
+  ];
+
   // Stock by category with real data
   const stockByType = (() => {
     const categories = ["System Unit", "Monitor", "Keyboard", "Mouse", "Headset", "Webcam", "Extra"];
@@ -441,68 +476,108 @@ export default function Reports() {
       </style>
 
       <div className="space-y-5">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-semibold text-gray-800">Reports & Analytics</h2>
-            <p className="text-xs text-gray-500 mt-0.5">BPO Equipment Inventory — Digital Minds</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white text-gray-600 outline-none focus:border-[#B0BF00]"
-            >
-              <option value="3months">Last 3 Months</option>
-              <option value="6months">Last 6 Months</option>
-              <option value="year">This Year</option>
-            </select>
-            <button
-              onClick={() => setShowFormatDialog(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#B0BF00] hover:bg-[#9aaa00] text-white rounded-lg text-xs font-medium transition-colors"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              Generate Report
-            </button>
-            <button
-              onClick={() => handleExport("Full")}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Export
-            </button>
+        <div className={CARD}>
+          <div className="bg-gradient-to-r from-[#f7fad8] via-white to-[#eef3c2] px-5 py-6 md:px-6 md:py-7">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#B0BF00]/20 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7f8f00]">
+                  <LayoutDashboard className="h-3.5 w-3.5" />
+                  Reports Overview
+                </div>
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+                  Reports & Analytics
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Review stock movement, asset value, and maintenance status in a cleaner reporting workspace.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <select
+                  value={period}
+                  onChange={(e) => setPeriod(e.target.value)}
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 outline-none shadow-sm focus:border-[#B0BF00]"
+                >
+                  <option value="3months">Last 3 Months</option>
+                  <option value="6months">Last 6 Months</option>
+                  <option value="year">This Year</option>
+                </select>
+                <button
+                  onClick={() => setShowFormatDialog(true)}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#B0BF00] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(176,191,0,0.28)] transition-colors hover:bg-[#9aaa00]"
+                >
+                  <Printer className="h-4 w-4" />
+                  Generate Report
+                </button>
+                <button
+                  onClick={() => handleExport("Full")}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50"
+                >
+                  <Download className="h-4 w-4" />
+                  Export
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {summaryStats.map((stat, i) => {
-            const Icon = stat.icon;
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {reportSummaryCards.map((card) => {
+            const Icon = card.icon;
             return (
-              <div key={i} className={CARD}>
-                <div className="flex items-start gap-3">
-                  <div className={`${stat.iconBg} ${stat.iconColor} p-2.5 rounded-lg flex-shrink-0`}>
-                    <Icon className="w-4 h-4" />
+              <div
+                key={card.label}
+                className={`overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br ${card.accent} p-5 shadow-[0_20px_45px_rgba(15,23,42,0.08)]`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                      {card.label}
+                    </p>
+                    <p className="mt-3 text-2xl font-bold tracking-tight text-slate-900">
+                      {card.value}
+                    </p>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-xs text-gray-500">{stat.label}</p>
-                    <p className="text-2xl font-semibold text-gray-800 mt-0.5">{stat.value}</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">{stat.sub}</p>
+                  <div className="rounded-2xl bg-white/90 p-3 shadow-sm">
+                    <Icon className={`h-5 w-5 ${card.iconClass}`} />
                   </div>
                 </div>
-                <div className={`mt-3 flex items-center gap-1 text-[10px] font-medium ${stat.up ? "text-green-600" : "text-orange-500"}`}>
-                  {stat.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {stat.trend}
-                </div>
+                <p className="mt-4 text-sm leading-6 text-slate-600">{card.description}</p>
               </div>
             );
           })}
         </div>
 
+        {/* Summary Stats */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {summaryStats.map((stat, i) => {
+            const Icon = stat.icon;
+            return (
+              <div key={i} className={CARD}>
+                <div className="p-5">
+                  <div className="flex items-start gap-3">
+                    <div className={`${stat.iconBg} ${stat.iconColor} flex-shrink-0 rounded-2xl p-2.5`}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">{stat.label}</p>
+                      <p className="mt-1 text-2xl font-semibold text-slate-900">{stat.value}</p>
+                      <p className="mt-0.5 text-[11px] text-slate-500">{stat.sub}</p>
+                    </div>
+                  </div>
+                  <div className={`mt-4 inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-semibold ${stat.up ? "bg-green-50 text-green-600" : "bg-orange-50 text-orange-500"}`}>
+                    {stat.up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                    {stat.trend}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* Stock by Category */}
-          <div className={CARD}>
+          <div className={`${CARD} p-5`}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-gray-800">Stock by Asset Type</h3>
               <button onClick={() => handleExport("Stock by Type")} className="p-1 text-gray-400 hover:text-gray-600 rounded">
@@ -526,7 +601,7 @@ export default function Reports() {
           </div>
 
           {/* Asset Condition Distribution */}
-          <div className={CARD}>
+          <div className={`${CARD} p-5`}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-gray-800">Asset Condition</h3>
               <button onClick={() => handleExport("Condition")} className="p-1 text-gray-400 hover:text-gray-600 rounded">
@@ -557,7 +632,7 @@ export default function Reports() {
         </div>
 
         {/* Inventory Value by Category */}
-        <div className={CARD}>
+        <div className={`${CARD} p-5`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-gray-800">Inventory Value Distribution by Category</h3>
             <button onClick={() => handleExport("Value Distribution")} className="p-1 text-gray-400 hover:text-gray-600 rounded">
@@ -579,7 +654,7 @@ export default function Reports() {
         </div>
 
         {/* Charts Row 2 */}
-        <div className={CARD}>
+        <div className={`${CARD} p-5`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-gray-800">Monthly Acquisitions vs Retirements</h3>
             <button onClick={() => handleExport("Acquisitions")} className="p-1 text-gray-400 hover:text-gray-600 rounded">
@@ -602,7 +677,7 @@ export default function Reports() {
         {/* Tables Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* Top Assets */}
-          <div className={CARD}>
+          <div className={`${CARD} p-5`}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-gray-800">Top Assets by Value</h3>
               <button onClick={() => handleExport("Top Assets")} className="p-1 text-gray-400 hover:text-gray-600 rounded">
@@ -633,7 +708,7 @@ export default function Reports() {
           </div>
 
           {/* Low Stock Alerts */}
-          <div className={CARD}>
+          <div className={`${CARD} p-5`}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-gray-800">Low Stock Alerts</h3>
               <span className="text-[10px] font-semibold bg-red-50 text-red-500 px-2 py-0.5 rounded-full border border-red-100">
