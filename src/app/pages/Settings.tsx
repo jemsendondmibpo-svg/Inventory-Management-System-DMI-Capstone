@@ -707,14 +707,19 @@ export default function SettingsPage() {
                           </div>
                         </div>
                         <button
+                          type="button"
+                          aria-pressed={checked}
+                          aria-label={`${checked ? "Disable" : "Enable"} ${item.label}`}
                           onClick={() => setNotifications((prev) => ({ ...prev, [item.key]: !prev[item.key as keyof typeof prev] }))}
-                          className={`relative h-8 w-16 shrink-0 justify-self-start rounded-full transition-all duration-300 sm:justify-self-end ${
-                            checked ? "bg-gradient-to-r from-[#B0BF00] to-[#9aaa00] shadow-lg shadow-[#B0BF00]/20" : "bg-gray-200"
+                          className={`relative h-8 w-16 shrink-0 justify-self-start overflow-hidden rounded-full p-1 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#B0BF00]/40 focus:ring-offset-2 focus:ring-offset-transparent sm:justify-self-end ${
+                            checked
+                              ? "bg-gradient-to-r from-[#B0BF00] to-[#9aaa00] shadow-lg shadow-[#B0BF00]/20 dark:shadow-none"
+                              : "bg-slate-200 dark:bg-[#24324a]"
                           }`}
                         >
                           <span
-                            className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-md transition-all duration-300 ${
-                              checked ? "translate-x-8" : "translate-x-1"
+                            className={`block h-6 w-6 rounded-full bg-white shadow-md transition-transform duration-300 ${
+                              checked ? "translate-x-8" : "translate-x-0"
                             }`}
                           />
                         </button>

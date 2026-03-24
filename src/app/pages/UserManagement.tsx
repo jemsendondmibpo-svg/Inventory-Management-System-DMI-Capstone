@@ -350,6 +350,56 @@ export default function UserManagement() {
     currentPage * itemsPerPage
   );
 
+  const escapeCsvValue = (value: string | number | null | undefined) =>
+    `"${String(value ?? "").replace(/"/g, '""')}"`;
+
+  const handleApplyFilters = () => {
+    setCurrentPage(1);
+    toast.success(`Showing ${filtered.length} matching user${filtered.length === 1 ? "" : "s"}`);
+  };
+
+  const handleExportUsers = () => {
+    if (filtered.length === 0) {
+      toast.error("No users available to export");
+      return;
+    }
+
+    const rows = [
+      [
+        "Name",
+        "Email",
+        "Role",
+        "Status",
+        "Created At",
+        "Blocked At",
+      ],
+      ...filtered.map((u) => [
+        u.full_name,
+        u.email,
+        u.role,
+        u.is_blocked ? "Blocked" : "Active",
+        new Date(u.created_at).toLocaleString(),
+        u.blocked_at ? new Date(u.blocked_at).toLocaleString() : "",
+      ]),
+    ];
+
+    const csv = rows
+      .map((row) => row.map((cell) => escapeCsvValue(cell)).join(","))
+      .join("\r\n");
+
+    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+
+    link.href = url;
+    link.download = `user-management-${timestamp}.csv`;
+    link.click();
+
+    URL.revokeObjectURL(url);
+    toast.success("Users exported successfully");
+  };
+
   const fieldClass =
     "h-11 rounded-xl border border-slate-200 bg-white text-sm shadow-sm transition focus:border-[#B0BF00] focus:ring-4 focus:ring-[#B0BF00]/10";
   const sectionCardClass =
@@ -495,6 +545,7 @@ export default function UserManagement() {
             <Button
               variant="outline"
               className="h-11 rounded-xl border-2 border-slate-200 px-4 font-medium text-slate-700 transition-all hover:border-[#B0BF00] hover:bg-slate-50 hover:text-[#7f8f00]"
+              onClick={handleApplyFilters}
             >
               <Filter className="w-4 h-4 mr-2" />
               Filter
@@ -502,6 +553,7 @@ export default function UserManagement() {
             <Button
               variant="outline"
               className="h-11 rounded-xl border-2 border-slate-200 px-4 font-medium text-slate-700 transition-all hover:border-[#B0BF00] hover:bg-slate-50 hover:text-[#7f8f00]"
+              onClick={handleExportUsers}
             >
               <Download className="w-4 h-4 mr-2" />
               Export
