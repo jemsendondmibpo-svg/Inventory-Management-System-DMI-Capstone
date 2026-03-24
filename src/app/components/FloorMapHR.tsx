@@ -107,6 +107,11 @@ export default function FloorMapHR({ assignments, onSeatClick }: Props) {
       color: "bg-[#9333ea]",
       workstationNames: ["HR Room", "HR Office", "Human Resources"],
     },
+    "IT Room": {
+      label: "IT ROOM",
+      color: "bg-[#2d4a7a]",
+      workstationNames: ["IT Room", "IT", "IT Department"],
+    },
     "Production Area": {
       label: "PRODUCTION AREA",
       color: "bg-[#1a7a4a]",
@@ -176,7 +181,7 @@ export default function FloorMapHR({ assignments, onSeatClick }: Props) {
 
       {/* Floor Plan Layout */}
       <div className="bg-[#f4f6f8] border border-gray-200 rounded-xl p-5 overflow-x-auto">
-        <div className="min-w-[800px] space-y-6">
+        <div className="min-w-[980px] space-y-6">
           
           {/* Top Row: Front Desk and Conference Room */}
           <div className="grid grid-cols-2 gap-6">
@@ -215,8 +220,8 @@ export default function FloorMapHR({ assignments, onSeatClick }: Props) {
             </div>
           </div>
 
-          {/* Bottom Row: HR Room and Production Area */}
-          <div className="grid grid-cols-2 gap-6">
+          {/* Bottom Row: HR Room, IT Room, Production Area */}
+          <div className="grid grid-cols-3 gap-6">
             {/* HR Room */}
             <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
               <div className={`${WORKSTATION_AREAS["HR Room"].color} text-white text-xs font-bold rounded-lg px-3 py-2 mb-3 text-center`}>
@@ -230,6 +235,23 @@ export default function FloorMapHR({ assignments, onSeatClick }: Props) {
               <div className="mt-3 pt-3 border-t border-gray-100">
                 <p className="text-[10px] text-gray-400">
                   {getWorkstationAssignments("HR Room").length} assignments
+                </p>
+              </div>
+            </div>
+
+            {/* IT Room */}
+            <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+              <div className={`${WORKSTATION_AREAS["IT Room"].color} text-white text-xs font-bold rounded-lg px-3 py-2 mb-3 text-center`}>
+                {WORKSTATION_AREAS["IT Room"].label}
+              </div>
+              <div className="flex flex-wrap gap-2 min-h-[120px]">
+                {getWorkstationAssignments("IT Room").map((item) => (
+                  <SeatCell key={item.assignment.assignmentId} assignment={item.assignment} displayNumber={item.displayNumber} onClick={handleClick} />
+                ))}
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <p className="text-[10px] text-gray-400">
+                  {getWorkstationAssignments("IT Room").length} assignments
                 </p>
               </div>
             </div>
