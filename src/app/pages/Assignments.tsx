@@ -369,6 +369,11 @@ export default function Assignments() {
               <h3 className="mt-3 text-xl font-bold tracking-tight text-slate-900">
                 {selectedDepartment} Floor Map - {selectedDepartment === "IT Department" ? "2nd Floor" : "3rd Floor"}
               </h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {selectedDepartment === "IT Department"
+                  ? "Assignments are numbered sequentially by date (oldest = #1). Click any seat to view details."
+                  : "View all HR Department asset assignments by workstation area."}
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <select
